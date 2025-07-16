@@ -1,0 +1,71 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            2.332,
+                            48.859
+                        ],
+                        [
+                            2.335,
+                            48.859
+                        ],
+                        [
+                            2.335,
+                            48.862
+                        ],
+                        [
+                            2.332,
+                            48.862
+                        ],
+                        [
+                            2.332,
+                            48.859
+                        ]
+                    ]
+                ]
+            },
+            "properties": {
+                "name": "Louvre"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            2.294,
+                            48.872
+                        ],
+                        [
+                            2.296,
+                            48.872
+                        ],
+                        [
+                            2.296,
+                            48.875
+                        ],
+                        [
+                            2.294,
+                            48.875
+                        ],
+                        [
+                            2.294,
+                            48.872
+                        ]
+                    ]
+                ]
+            },
+            "properties": {
+                "name": "Tour Eiffel"
+            }
+        }
+    ]
+}
