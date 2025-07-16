@@ -1,0 +1,868 @@
+{
+        "type": "FeatureCollection",
+        "features": [
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "8",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13217,
+                                                45.93707
+                                        ],
+                                        [
+                                                6.13212,
+                                                45.93707
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "10",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.1321,
+                                                45.93685
+                                        ],
+                                        [
+                                                6.13215,
+                                                45.93685
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "Réunion",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13273,
+                                                45.93773
+                                        ],
+                                        [
+                                                6.13269,
+                                                45.93776
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "1",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13276,
+                                                45.93756
+                                        ],
+                                        [
+                                                6.13276,
+                                                45.93759
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "6",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13232,
+                                                45.9373
+                                        ],
+                                        [
+                                                6.13232,
+                                                45.93733
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "11",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13214,
+                                                45.93677
+                                        ],
+                                        [
+                                                6.13215,
+                                                45.9368
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "14",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13229,
+                                                45.93681
+                                        ],
+                                        [
+                                                6.13228,
+                                                45.93679
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "CDI",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13266,
+                                                45.93761
+                                        ],
+                                        [
+                                                6.13261,
+                                                45.93761
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "Proviseur",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13285,
+                                                45.9375
+                                        ],
+                                        [
+                                                6.13285,
+                                                45.93747
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "0",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13218,
+                                                45.93707
+                                        ],
+                                        [
+                                                6.13223,
+                                                45.93707
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "12",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13225,
+                                                45.93677
+                                        ],
+                                        [
+                                                6.13225,
+                                                45.93679
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "Acceuil",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13284,
+                                                45.93754
+                                        ],
+                                        [
+                                                6.13287,
+                                                45.93756
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "7",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13219,
+                                                45.93717
+                                        ],
+                                        [
+                                                6.13214,
+                                                45.93718
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "7.8",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13218,
+                                                45.93714
+                                        ],
+                                        [
+                                                6.13213,
+                                                45.93714
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "13",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13242,
+                                                45.9368
+                                        ],
+                                        [
+                                                6.13242,
+                                                45.93678
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "2",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13266,
+                                                45.9376
+                                        ],
+                                        [
+                                                6.13272,
+                                                45.93761
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "Intendance",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13264,
+                                                45.9374
+                                        ],
+                                        [
+                                                6.1327,
+                                                45.9374
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "Vie scolaire",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13237,
+                                                45.9373
+                                        ],
+                                        [
+                                                6.13237,
+                                                45.93732
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "name": "9",
+                                "foot": "yes",
+                                "highway": "footway"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13215,
+                                                45.93687
+                                        ],
+                                        [
+                                                6.13209,
+                                                45.93688
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "E105",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13148,
+                                                45.93734
+                                        ],
+                                        [
+                                                6.13148,
+                                                45.93738
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "E108",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13144,
+                                                45.93741
+                                        ],
+                                        [
+                                                6.13148,
+                                                45.9374
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "M105",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13173,
+                                                45.93679
+                                        ],
+                                        [
+                                                6.13174,
+                                                45.93681
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "M101",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13179,
+                                                45.93695
+                                        ],
+                                        [
+                                                6.13175,
+                                                45.93695
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "E109 Prof",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13123,
+                                                45.93737
+                                        ],
+                                        [
+                                                6.13121,
+                                                45.93737
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "M109",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13168,
+                                                45.93699
+                                        ],
+                                        [
+                                                6.13164,
+                                                45.93699
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "E104",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13171,
+                                                45.93743
+                                        ],
+                                        [
+                                                6.1317,
+                                                45.93738
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "M106",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13171,
+                                                45.93721
+                                        ],
+                                        [
+                                                6.13167,
+                                                45.93721
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "E103",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13161,
+                                                45.93736
+                                        ],
+                                        [
+                                                6.13161,
+                                                45.93739
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "foot": "yes",
+                                "highway": "footway",
+                                "layer": "-1",
+                                "name": "M108.1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13177,
+                                                45.93699
+                                        ],
+                                        [
+                                                6.13177,
+                                                45.93701
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "M102",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13178,
+                                                45.93687
+                                        ],
+                                        [
+                                                6.13174,
+                                                45.93688
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "E102",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13182,
+                                                45.93739
+                                        ],
+                                        [
+                                                6.13176,
+                                                45.93739
+                                        ],
+                                        [
+                                                6.13175,
+                                                45.93739
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "M106.1",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13172,
+                                                45.93724
+                                        ],
+                                        [
+                                                6.13171,
+                                                45.93721
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "E107",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13141,
+                                                45.93737
+                                        ],
+                                        [
+                                                6.13148,
+                                                45.93738
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "E101",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13177,
+                                                45.93735
+                                        ],
+                                        [
+                                                6.13176,
+                                                45.93739
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "M110",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13168,
+                                                45.93726
+                                        ],
+                                        [
+                                                6.13168,
+                                                45.93724
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "M104 Prof",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13164,
+                                                45.93686
+                                        ],
+                                        [
+                                                6.13164,
+                                                45.93684
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "M108",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13171,
+                                                45.93704
+                                        ],
+                                        [
+                                                6.13165,
+                                                45.93705
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "M103",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.1317,
+                                                45.93695
+                                        ],
+                                        [
+                                                6.13175,
+                                                45.93695
+                                        ]
+                                ]
+                        }
+                },
+                {
+                        "type": "Feature",
+                        "properties": {
+                                "bridge": "yes",
+                                "name": "E106",
+                                "highway": "footway",
+                                "foot": "yes",
+                                "layer": "-1"
+                        },
+                        "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                        [
+                                                6.13153,
+                                                45.93743
+                                        ],
+                                        [
+                                                6.13153,
+                                                45.9374
+                                        ]
+                                ]
+                        }
+                }
+        ]
+}

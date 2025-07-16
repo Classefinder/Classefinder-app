@@ -1,21 +1,25 @@
 // Configuration dynamique des étages
 const ETAGES = [
     {
+        nom: "Etage 0",
+        cheminUrl: "http://localhost:3000/geojson/chemins_etage0.geojson",
+        batimentUrl: "http://localhost:3000/geojson/salles_etage0.geojson"
+    },
+    {
         nom: "Etage 1",
-        cheminUrl: "http://localhost:3000/geojson/chemin_etage1.geojson",
-        batimentUrl: "http://localhost:3000/geojson/batiment_etage1.geojson"
+        cheminUrl: "http://localhost:3000/geojson/chemins_etage1.geojson",
+        batimentUrl: "http://localhost:3000/geojson/salles_etage1.geojson"
     },
     {
         nom: "Etage 2",
-        cheminUrl: "http://localhost:3000/geojson/chemin_etage1.geojson",
-        batimentUrl: "http://localhost:3000/geojson/batiment_etage1.geojson"
+        cheminUrl: "http://localhost:3000/geojson/chemins_etage2.geojson",
+        batimentUrl: "http://localhost:3000/geojson/salles_etage2.geojson"
     },
-    // Ajoute ici d'autres étages si besoin
 ];
 
 const map = L.map('map').setView([48.8566, 2.3522], 13);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
+    maxZoom: 23,
     attribution: '© OpenStreetMap'
 }).addTo(map);
 
@@ -64,43 +68,59 @@ ETAGES.forEach((etage, idx) => {
         });
 });
 
-// Ajout du contrôle de recherche sur tous les bâtiments de tous les étages
-setTimeout(() => {
-    // Fusionne toutes les features de tous les étages pour la recherche
+// On attend que tous les calques soient chargés avant d'initialiser les barres de recherche
+Promise.all([
+    ...ETAGES.map((etage, idx) => fetch(etage.batimentUrl).then(res => res.json())),
+]).then(() => {
+    // Ajout du contrôle de recherche sur tous les bâtiments de tous les étages (pour le départ)
+    let depart = null;
+    let departEtageIdx = null;
     const allBatimentLayers = L.featureGroup(batimentLayers);
-    const searchCtrl = new L.Control.Search({
+    const searchCtrlDepart = new L.Control.Search({
         layer: allBatimentLayers,
         propertyName: 'name',
         initial: false,
         zoom: 16,
-        marker: false
+        marker: false,
+        textPlaceholder: 'Départ...'
     });
-    map.addControl(searchCtrl);
+    map.addControl(searchCtrlDepart);
 
-    // Lorsqu'on trouve un bâtiment, place le départ sur le chemin correspondant et zoome sur le bâtiment
-    searchCtrl.on('search:locationfound', function (e) {
+    searchCtrlDepart.on('search:locationfound', function (e) {
         // Trouve l'étage et la feature bâtiment
         let etageIdx = -1;
-        let batFeature = null;
         batimentFeatures.forEach((features, idx) => {
             features.forEach(obj => {
                 if (obj.feature.properties.name === e.layer.feature.properties.name) {
                     etageIdx = idx;
-                    batFeature = obj;
                 }
             });
         });
         if (etageIdx !== -1) {
-            // Cherche le chemin correspondant (nom = 'Chemin ' + nom du bâtiment)
-            const cheminName = 'Chemin ' + e.layer.feature.properties.name;
-            const cheminObj = cheminFeatures[etageIdx] && cheminFeatures[etageIdx].find(obj => obj.feature.properties.name === cheminName);
+            // Cherche la feature du chemin avec le même nom
+            const cheminObj = cheminFeatures[etageIdx] && cheminFeatures[etageIdx].find(obj => obj.feature.properties.name === e.layer.feature.properties.name);
             if (cheminObj) {
-                // Place un marqueur sur le chemin
                 if (window.departMarker) map.removeLayer(window.departMarker);
-                window.departMarker = L.marker(cheminObj.feature.geometry.coordinates.slice().reverse()).addTo(map);
-                window.departMarker.bindPopup('Départ : ' + cheminName).openPopup();
+                // Si c'est une ligne, place le marqueur sur le premier point ou au centre
+                let markerCoords;
+                if (cheminObj.feature.geometry.type === 'LineString') {
+                    const coords = cheminObj.feature.geometry.coordinates;
+                    // Option 1 : premier point
+                    markerCoords = [coords[0][1], coords[0][0]];
+                    // Option 2 : centre de la ligne (décommente si tu préfères)
+                    // const lat = coords.reduce((sum, c) => sum + c[1], 0) / coords.length;
+                    // const lng = coords.reduce((sum, c) => sum + c[0], 0) / coords.length;
+                    // markerCoords = [lat, lng];
+                } else if (cheminObj.feature.geometry.type === 'Point') {
+                    markerCoords = cheminObj.feature.geometry.coordinates.slice().reverse();
+                }
+                if (markerCoords) {
+                    window.departMarker = L.marker(markerCoords).addTo(map);
+                    window.departMarker.bindPopup('Départ : ' + e.layer.feature.properties.name).openPopup();
+                    depart = markerCoords;
+                    departEtageIdx = etageIdx;
+                }
             }
-            // Affiche/zoome sur la forme du bâtiment
             if (!map.hasLayer(batimentLayers[etageIdx])) {
                 batimentLayers.forEach(l => map.removeLayer(l));
                 batimentLayers[etageIdx].addTo(map);
@@ -108,4 +128,108 @@ setTimeout(() => {
             map.fitBounds(e.layer.getBounds());
         }
     });
-}, 1000);
+
+    // Ajout du contrôle de recherche sur tous les bâtiments de tous les étages (pour l'arrivée)
+    let arrivee = null;
+    let arriveeEtageIdx = null;
+    const searchCtrlArrivee = new L.Control.Search({
+        layer: allBatimentLayers,
+        propertyName: 'name',
+        initial: false,
+        zoom: 16,
+        marker: false,
+        textPlaceholder: 'Arrivée...'
+    });
+    map.addControl(searchCtrlArrivee);
+
+    searchCtrlArrivee.on('search:locationfound', function (e) {
+        // Trouve l'étage et la feature bâtiment
+        let etageIdx = -1;
+        batimentFeatures.forEach((features, idx) => {
+            features.forEach(obj => {
+                if (obj.feature.properties.name === e.layer.feature.properties.name) {
+                    etageIdx = idx;
+                }
+            });
+        });
+        if (etageIdx !== -1) {
+            const cheminObj = cheminFeatures[etageIdx] && cheminFeatures[etageIdx].find(obj => obj.feature.properties.name === e.layer.feature.properties.name);
+            if (cheminObj) {
+                if (window.arriveeMarker) map.removeLayer(window.arriveeMarker);
+                let markerCoords;
+                if (cheminObj.feature.geometry.type === 'LineString') {
+                    const coords = cheminObj.feature.geometry.coordinates;
+                    markerCoords = [coords[0][1], coords[0][0]];
+                } else if (cheminObj.feature.geometry.type === 'Point') {
+                    markerCoords = cheminObj.feature.geometry.coordinates.slice().reverse();
+                }
+                if (markerCoords) {
+                    window.arriveeMarker = L.marker(markerCoords).addTo(map);
+                    window.arriveeMarker.bindPopup('Arrivée : ' + e.layer.feature.properties.name).openPopup();
+                    arrivee = markerCoords;
+                    arriveeEtageIdx = etageIdx;
+                }
+            }
+            if (!map.hasLayer(batimentLayers[etageIdx])) {
+                batimentLayers.forEach(l => map.removeLayer(l));
+                batimentLayers[etageIdx].addTo(map);
+            }
+            map.fitBounds(e.layer.getBounds());
+        }
+        if (depart && arrivee) {
+            getRouteAndPoints(depart, arrivee, [window.departMarker, window.arriveeMarker], batimentLayers, departEtageIdx, arriveeEtageIdx);
+        }
+    });
+});
+
+// Fonction pour récupérer et filtrer les segments
+function getRouteAndPoints(start, end, markers, layersEtages, departIdx, arriveeIdx) {
+    // Nettoie les anciens itinéraires
+    if (window.routeLines) {
+        window.routeLines.forEach(l => map.removeLayer(l));
+    }
+    window.routeLines = [];
+
+    var osrmUrl = `https://classefinder.duckdns.org/osrm/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?steps=true&geometries=geojson&overview=full`;
+
+    fetch(osrmUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data.routes && data.routes.length > 0) {
+                var route = data.routes[0];
+                // Affiche la ligne complète (optionnel)
+                // var routeLine = L.polyline(routeCoordinates, { color: 'blue' }).addTo(map);
+                // window.routeLines.push(routeLine);
+
+                // Découpe et affiche chaque segment sur le bon étage
+                route.legs[0].steps.forEach((step, index) => {
+                    var startName = step.name || "";
+                    var endName = (route.legs[0].steps[index + 1] || {}).name || "";
+                    var segment = {
+                        type: "Feature",
+                        geometry: {
+                            type: "LineString",
+                            coordinates: step.geometry.coordinates
+                        },
+                        properties: {
+                            name: startName
+                        }
+                    };
+                    // Logique d'étage : si le nom contient "1" -> étage 1, "2" -> étage 2, etc.
+                    for (let i = 0; i < layersEtages.length; i++) {
+                        if (startName.includes((i + 1).toString()) || endName.includes((i + 1).toString())) {
+                            var seg = L.geoJSON(segment, { color: 'red' }).addTo(map);
+                            window.routeLines.push(seg);
+                        }
+                    }
+                });
+                // Centrer la carte sur l'itinéraire
+                map.fitBounds(L.latLngBounds([start, end]));
+            } else {
+                console.error('Aucune route trouvée');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors de la récupération de l\'itinéraire:', error);
+        });
+}
