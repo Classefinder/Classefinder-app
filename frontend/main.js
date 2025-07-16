@@ -1,17 +1,18 @@
 // Configuration dynamique des étages
 const ETAGES = [
     {
-        nom: "Etage 0",
-        cheminUrl: "http://localhost:3000/geojson/chemins_etage0.geojson",
-        batimentUrl: "http://localhost:3000/geojson/salles_etage0.geojson"
-    },
-    {
         nom: "Etage 1",
         cheminUrl: "http://localhost:3000/geojson/chemins_etage1.geojson",
         batimentUrl: "http://localhost:3000/geojson/salles_etage1.geojson"
     },
     {
-        nom: "Etage 2",
+        nom: "Etage 0",
+        cheminUrl: "http://localhost:3000/geojson/chemins_etage0.geojson",
+        batimentUrl: "http://localhost:3000/geojson/salles_etage0.geojson"
+    },
+
+    {
+        nom: "Etage -1",
         cheminUrl: "http://localhost:3000/geojson/chemins_etage2.geojson",
         batimentUrl: "http://localhost:3000/geojson/salles_etage2.geojson"
     },
@@ -250,7 +251,6 @@ function getRouteAndPoints(start, end, markers, layersEtages, departIdx, arrivee
                             name: startName
                         }
                     };
-                    // Correction : si le nom contient "0" -> étage 0, "1" -> étage 1, "2" -> étage 2
                     for (let i = 0; i < layersEtages.length; i++) {
                         if (startName.includes(i.toString())) {
                             var seg = L.geoJSON(segment, { color: 'red' });
@@ -258,8 +258,9 @@ function getRouteAndPoints(start, end, markers, layersEtages, departIdx, arrivee
                         }
                     }
                 });
-                // Affiche uniquement les segments de l'étage courant
-                updateRouteDisplay(departIdx);
+                // Affiche uniquement les segments de l'étage actuellement affiché
+                const currentIdx = batimentLayers.findIndex(l => map.hasLayer(l));
+                updateRouteDisplay(currentIdx !== -1 ? currentIdx : departIdx);
                 map.fitBounds(L.latLngBounds([start, end]));
             } else {
                 console.error('Aucune route trouvée');
