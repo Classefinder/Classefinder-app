@@ -101,24 +101,21 @@ Promise.all([
             const cheminObj = cheminFeatures[etageIdx] && cheminFeatures[etageIdx].find(obj => obj.feature.properties.name === e.layer.feature.properties.name);
             if (cheminObj) {
                 if (window.departMarker) map.removeLayer(window.departMarker);
-                // Si c'est une ligne, place le marqueur sur le premier point ou au centre
                 let markerCoords;
                 if (cheminObj.feature.geometry.type === 'LineString') {
                     const coords = cheminObj.feature.geometry.coordinates;
-                    // Option 1 : premier point
-                    markerCoords = [coords[0][1], coords[0][0]];
-                    // Option 2 : centre de la ligne (décommente si tu préfères)
-                    // const lat = coords.reduce((sum, c) => sum + c[1], 0) / coords.length;
-                    // const lng = coords.reduce((sum, c) => sum + c[0], 0) / coords.length;
-                    // markerCoords = [lat, lng];
+                    markerCoords = getLineCenter(coords);
                 } else if (cheminObj.feature.geometry.type === 'Point') {
                     markerCoords = cheminObj.feature.geometry.coordinates.slice().reverse();
                 }
                 if (markerCoords) {
                     window.departMarker = L.marker(markerCoords).addTo(map);
                     window.departMarker.bindPopup('Départ : ' + e.layer.feature.properties.name).openPopup();
-                    depart = markerCoords;
-                    departEtageIdx = etageIdx;
+                    window.currentRouteStart = markerCoords;
+                    window.currentRouteStartIdx = etageIdx;
+                    if (window.currentRouteStart && window.currentRouteEnd) {
+                        getRouteAndPoints(window.currentRouteStart, window.currentRouteEnd, [window.departMarker, window.arriveeMarker], batimentLayers, window.currentRouteStartIdx, window.currentRouteEndIdx);
+                    }
                 }
             }
             if (!map.hasLayer(batimentLayers[etageIdx])) {
@@ -159,15 +156,18 @@ Promise.all([
                 let markerCoords;
                 if (cheminObj.feature.geometry.type === 'LineString') {
                     const coords = cheminObj.feature.geometry.coordinates;
-                    markerCoords = [coords[0][1], coords[0][0]];
+                    markerCoords = getLineCenter(coords);
                 } else if (cheminObj.feature.geometry.type === 'Point') {
                     markerCoords = cheminObj.feature.geometry.coordinates.slice().reverse();
                 }
                 if (markerCoords) {
                     window.arriveeMarker = L.marker(markerCoords).addTo(map);
                     window.arriveeMarker.bindPopup('Arrivée : ' + e.layer.feature.properties.name).openPopup();
-                    arrivee = markerCoords;
-                    arriveeEtageIdx = etageIdx;
+                    window.currentRouteEnd = markerCoords;
+                    window.currentRouteEndIdx = etageIdx;
+                    if (window.currentRouteStart && window.currentRouteEnd) {
+                        getRouteAndPoints(window.currentRouteStart, window.currentRouteEnd, [window.departMarker, window.arriveeMarker], batimentLayers, window.currentRouteStartIdx, window.currentRouteEndIdx);
+                    }
                 }
             }
             if (!map.hasLayer(batimentLayers[etageIdx])) {
@@ -182,13 +182,33 @@ Promise.all([
     });
 });
 
-// Fonction pour récupérer et filtrer les segments
-function getRouteAndPoints(start, end, markers, layersEtages, departIdx, arriveeIdx) {
-    // Nettoie les anciens itinéraires
-    if (window.routeLines) {
-        window.routeLines.forEach(l => map.removeLayer(l));
+// Stockage global des segments d'itinéraire par étage
+window.routeSegmentsByEtage = [];
+window.currentRouteStart = null;
+window.currentRouteEnd = null;
+window.currentRouteStartIdx = null;
+window.currentRouteEndIdx = null;
+
+function updateRouteDisplay(currentEtageIdx) {
+    // Masque tous les segments
+    window.routeSegmentsByEtage.forEach((segments, idx) => {
+        if (segments) segments.forEach(seg => map.removeLayer(seg));
+    });
+    // Affiche uniquement les segments de l'étage courant
+    if (window.routeSegmentsByEtage[currentEtageIdx]) {
+        window.routeSegmentsByEtage[currentEtageIdx].forEach(seg => seg.addTo(map));
     }
-    window.routeLines = [];
+}
+
+// Fonction pour récupérer et filtrer les segments
+// Correction de la logique d'étage : si le nom contient "0" -> étage 0, "1" -> étage 1, "2" -> étage 2
+function getRouteAndPoints(start, end, markers, layersEtages, departIdx, arriveeIdx) {
+    if (window.routeSegmentsByEtage) {
+        window.routeSegmentsByEtage.forEach(segments => {
+            if (segments) segments.forEach(l => map.removeLayer(l));
+        });
+    }
+    window.routeSegmentsByEtage = Array(layersEtages.length).fill().map(() => []);
 
     var osrmUrl = `https://classefinder.duckdns.org/osrm/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?steps=true&geometries=geojson&overview=full`;
 
@@ -197,11 +217,6 @@ function getRouteAndPoints(start, end, markers, layersEtages, departIdx, arrivee
         .then(data => {
             if (data.routes && data.routes.length > 0) {
                 var route = data.routes[0];
-                // Affiche la ligne complète (optionnel)
-                // var routeLine = L.polyline(routeCoordinates, { color: 'blue' }).addTo(map);
-                // window.routeLines.push(routeLine);
-
-                // Découpe et affiche chaque segment sur le bon étage
                 route.legs[0].steps.forEach((step, index) => {
                     var startName = step.name || "";
                     var endName = (route.legs[0].steps[index + 1] || {}).name || "";
@@ -215,15 +230,16 @@ function getRouteAndPoints(start, end, markers, layersEtages, departIdx, arrivee
                             name: startName
                         }
                     };
-                    // Logique d'étage : si le nom contient "1" -> étage 1, "2" -> étage 2, etc.
+                    // Correction : si le nom contient "0" -> étage 0, "1" -> étage 1, "2" -> étage 2
                     for (let i = 0; i < layersEtages.length; i++) {
-                        if (startName.includes((i + 1).toString()) || endName.includes((i + 1).toString())) {
-                            var seg = L.geoJSON(segment, { color: 'red' }).addTo(map);
-                            window.routeLines.push(seg);
+                        if (startName.includes(i.toString()) || endName.includes(i.toString())) {
+                            var seg = L.geoJSON(segment, { color: 'red' });
+                            window.routeSegmentsByEtage[i].push(seg);
                         }
                     }
                 });
-                // Centrer la carte sur l'itinéraire
+                // Affiche uniquement les segments de l'étage courant
+                updateRouteDisplay(departIdx);
                 map.fitBounds(L.latLngBounds([start, end]));
             } else {
                 console.error('Aucune route trouvée');
@@ -233,3 +249,23 @@ function getRouteAndPoints(start, end, markers, layersEtages, departIdx, arrivee
             console.error('Erreur lors de la récupération de l\'itinéraire:', error);
         });
 }
+
+// Pour placer le marqueur au centre d'une ligne
+function getLineCenter(coords) {
+    let lat = 0, lng = 0;
+    coords.forEach(c => {
+        lng += c[0];
+        lat += c[1];
+    });
+    lat /= coords.length;
+    lng /= coords.length;
+    return [lat, lng];
+}
+
+// Ajoute un listener sur le changement de baseLayer pour afficher les bons segments
+map.on('baselayerchange', function (e) {
+    const idx = batimentLayers.findIndex(l => l === e.layer);
+    if (idx !== -1) {
+        updateRouteDisplay(idx);
+    }
+});
