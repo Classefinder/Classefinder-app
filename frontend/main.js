@@ -2,6 +2,8 @@ import { getLineCenter } from './modules/geoUtils.js';
 import { updateRouteDisplay } from './modules/routeDisplay.js';
 import { getRouteAndPoints } from './modules/route.js';
 import { setupSearchBars } from './modules/searchBar.js';
+import { setupLocationControl } from './modules/location.js';
+import { loadGeojsonLayers } from './modules/geojsonLoader.js';
 
 // Nouvelle configuration dynamique des étages avec code explicite
 const ETAGES = [
@@ -25,12 +27,15 @@ const ETAGES = [
     },
 ];
 
-const map = L.map('map').setView([45.93728985010814, 6.132621267468342], 18);
+// Paramètres du périmètre (exemple : centre du campus)
+const perimeterCenter = [45.93728985010814, 6.132621267468342]; // à adapter si besoin
+const perimeterRadius = 120000; // en mètres
+
+const map = L.map('map').setView(perimeterCenter, 18);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 23,
     attribution: '© OpenStreetMap'
 }).addTo(map);
-
 const layerControl = L.control.layers(null, null, { collapsed: false }).addTo(map);
 
 // Stockage des couches et features par étage
@@ -38,55 +43,43 @@ const batimentLayers = [];
 const batimentFeatures = [];
 const cheminFeatures = [];
 
-// Chargement dynamique des calques pour chaque étage
-ETAGES.forEach((etage, idx) => {
-    // Calque chemin (jamais affiché, ni dans le control layer)
-    fetch(etage.cheminUrl)
-        .then(res => res.json())
-        .then(data => {
-            const features = [];
-            L.geoJSON(data, {
-                onEachFeature: (feature, layer) => {
-                    features.push({ feature, layer });
-                }
-            });
-            cheminFeatures[idx] = features;
-        });
-
-    // Calque batiment (affiché dans le control layer)
-    fetch(etage.batimentUrl)
-        .then(res => res.json())
-        .then(data => {
-            const features = [];
-            const batLayer = L.geoJSON(data, {
-                onEachFeature: (feature, layer) => {
-                    features.push({ feature, layer });
-                    if (feature.properties && feature.properties.name) {
-                        layer.bindPopup(feature.properties.name);
-                    }
-                }
-            });
-            batimentLayers[idx] = batLayer;
-            batimentFeatures[idx] = features;
-            layerControl.addBaseLayer(batLayer, etage.nom);
-            // Affiche le premier étage par défaut
-            if (idx === 0) {
-                batLayer.addTo(map);
-            }
-        });
-});
-
-// On attend que tous les calques soient chargés avant d'initialiser les barres de recherche
-Promise.all([
-    ...ETAGES.map((etage, idx) => fetch(etage.batimentUrl).then(res => res.json())),
-]).then(() => {
-    setupSearchBars({
+// Logique de localisation obligatoire et chargement conditionnel
+document.addEventListener('DOMContentLoaded', () => {
+    setupLocationControl({
         map,
-        batimentLayers,
-        batimentFeatures,
-        cheminFeatures,
-        ETAGES,
-        getRouteAndPoints
+        perimeterCenter,
+        perimeterRadius,
+        onInside: (e, perimeterCircle) => {
+            // L'utilisateur est dans la zone : on charge les geojson et la logique
+            map.removeLayer(perimeterCircle);
+            loadGeojsonLayers({
+                ETAGES,
+                batimentLayers,
+                batimentFeatures,
+                cheminFeatures,
+                layerControl,
+                map,
+                onAllLoaded: () => {
+                    setupSearchBars({
+                        map,
+                        batimentLayers,
+                        batimentFeatures,
+                        cheminFeatures,
+                        ETAGES,
+                        getRouteAndPoints
+                    });
+                }
+            });
+        },
+        onOutside: (e, perimeterCircle) => {
+            // L'utilisateur est hors zone : on montre juste le cercle
+            map.setView(perimeterCenter, 18);
+            // La position de l'utilisateur est affichée par le plugin
+        },
+        onDenied: (e, perimeterCircle) => {
+            // L'utilisateur refuse la localisation : on montre juste le cercle
+            map.setView(perimeterCenter, 18);
+        }
     });
 });
 
