@@ -45,3 +45,31 @@ export function setupLocationControl({ map, perimeterCenter, perimeterRadius, on
 
     return { lc, perimeterCircle };
 }
+
+// Ajoute un bouton pour placer le marqueur de départ à la position utilisateur
+export function addSetDepartButton({ map, getCurrentPosition, setDepartMarker }) {
+    const btn = L.control({ position: 'topleft' });
+    btn.onAdd = function () {
+        const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+        div.style.background = 'white';
+        div.style.cursor = 'pointer';
+        div.title = 'Définir le départ à ma position';
+        div.innerHTML = '<span style="display:inline-block;padding:4px 8px;">📍 Départ ici</span>';
+        div.onclick = function (e) {
+            e.preventDefault();
+            getCurrentPosition(function (latlng) {
+                setDepartMarker(latlng);
+            });
+        };
+        return div;
+    };
+    btn.addTo(map);
+}
+
+// Utilitaire pour obtenir la position courante via leaflet-control-locate
+export function getCurrentUserPosition(map, callback) {
+    map.once('locationfound', function (e) {
+        callback(e.latlng);
+    });
+    map.locate({ setView: false, watch: false, enableHighAccuracy: true });
+}

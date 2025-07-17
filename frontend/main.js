@@ -2,7 +2,7 @@ import { getLineCenter } from './modules/geoUtils.js';
 import { updateRouteDisplay } from './modules/routeDisplay.js';
 import { getRouteAndPoints } from './modules/route.js';
 import { setupSearchBars } from './modules/searchBar.js';
-import { setupLocationControl } from './modules/location.js';
+import { setupLocationControl, addSetDepartButton, getCurrentUserPosition } from './modules/location.js';
 import { loadGeojsonLayers } from './modules/geojsonLoader.js';
 
 // Nouvelle configuration dynamique des étages avec code explicite
@@ -43,6 +43,11 @@ const batimentLayers = [];
 const batimentFeatures = [];
 const cheminFeatures = [];
 
+// Flags pour empêcher l'initialisation multiple
+let geojsonLoaded = false;
+let searchBarInitialized = false;
+let departButtonAdded = false;
+
 // Logique de localisation obligatoire et chargement conditionnel
 document.addEventListener('DOMContentLoaded', () => {
     setupLocationControl({
@@ -50,26 +55,68 @@ document.addEventListener('DOMContentLoaded', () => {
         perimeterCenter,
         perimeterRadius,
         onInside: (e, perimeterCircle) => {
-            // L'utilisateur est dans la zone : on charge les geojson et la logique
             map.removeLayer(perimeterCircle);
-            loadGeojsonLayers({
-                ETAGES,
-                batimentLayers,
-                batimentFeatures,
-                cheminFeatures,
-                layerControl,
-                map,
-                onAllLoaded: () => {
-                    setupSearchBars({
-                        map,
-                        batimentLayers,
-                        batimentFeatures,
-                        cheminFeatures,
-                        ETAGES,
-                        getRouteAndPoints
-                    });
-                }
-            });
+            if (!geojsonLoaded) {
+                geojsonLoaded = true;
+                loadGeojsonLayers({
+                    ETAGES,
+                    batimentLayers,
+                    batimentFeatures,
+                    cheminFeatures,
+                    layerControl,
+                    map,
+                    onAllLoaded: () => {
+                        if (!searchBarInitialized) {
+                            searchBarInitialized = true;
+                            setupSearchBars({
+                                map,
+                                batimentLayers,
+                                batimentFeatures,
+                                cheminFeatures,
+                                ETAGES,
+                                getRouteAndPoints
+                            });
+                        }
+                        if (!departButtonAdded) {
+                            departButtonAdded = true;
+                            addSetDepartButton({
+                                map,
+                                getCurrentPosition: cb => getCurrentUserPosition(map, cb),
+                                setDepartMarker: (latlng) => {
+                                    // Supprime tous les anciens marqueurs de départ sur tous les étages
+                                    window.departMarkerByEtage.forEach((marker, idx) => {
+                                        if (marker) map.removeLayer(marker);
+                                        window.departMarkerByEtage[idx] = null;
+                                    });
+                                    // Place le marqueur de départ sur l'étage courant
+                                    const currentIdx = batimentLayers.findIndex(l => map.hasLayer(l));
+                                    if (currentIdx !== -1) {
+                                        const marker = L.marker(latlng).bindPopup('Départ : Ma position');
+                                        window.departMarkerByEtage[currentIdx] = marker;
+                                        marker.addTo(map).openPopup();
+                                        window.currentRouteStart = [latlng.lat, latlng.lng];
+                                        window.currentRouteStartIdx = currentIdx;
+                                        if (window.currentRouteStart && window.currentRouteEnd) {
+                                            getRouteAndPoints({
+                                                map,
+                                                start: window.currentRouteStart,
+                                                end: window.currentRouteEnd,
+                                                markers: [marker, window.arriveeMarkerByEtage[window.currentRouteEndIdx]],
+                                                layersEtages: batimentLayers,
+                                                departIdx: window.currentRouteStartIdx,
+                                                arriveeIdx: window.currentRouteEndIdx,
+                                                ETAGES,
+                                                batimentLayers,
+                                                routeSegmentsByEtage: window.routeSegmentsByEtage
+                                            });
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            }
         },
         onOutside: (e, perimeterCircle) => {
             // L'utilisateur est hors zone : on montre juste le cercle
