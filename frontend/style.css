@@ -1,4 +1,4 @@
-/* Conteneur principal des contrôles custom */
+/* 1. On fixe la taille du container principal */
 #custom-controls-container {
     position: absolute;
     top: 20px;
@@ -21,49 +21,88 @@
 .custom-separator-horizontal {
     border: none;
     border-top: 1.5px solid #bbb;
-    margin: 2px 0 2px 0;
+    margin: 0px 0 0px 0;
 }
 
+
+
+/* 2. La rangée de boutons */
 .custom-controls-row {
     display: flex;
     flex-direction: row;
-    align-items: center;
-    gap: 2px;
+    align-items: stretch;
+    gap: 0;
+    width: 100%;
+    height: 48px;
+    background: transparent;
 }
 
-#custom-locate-btn {
+/* 3. Chaque bouton à largeur fixe */
+#custom-locate-btn,
+.custom-darkmode-btn {
+    flex: 0 0 50%;
+    /* ne grandit pas, ne rétrécit pas, largeur = 50px */
+    width: 50%;
+    /* redondant mais parfois nécessaire selon le navigateur */
+    height: 100%;
+    /* occupe toute la hauteur de la rangée */
+    margin: 0;
+    padding: 0;
+    /* supprime tout padding par défaut */
+    box-sizing: border-box;
     display: flex;
     align-items: center;
+    justify-content: center;
+}
+
+/* Si la .leaflet-control-locate a elle-même du padding/margin */
+#custom-locate-btn .leaflet-control-locate {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    /* on remet à zéro pour ne pas déborder */
+    margin: 0;
+    border-radius: 15px;
+}
+
+/* ... et le reste inchangé ... */
+.custom-separator-horizontal {
+    border: none;
+    border-top: 1.5px solid #bbb;
+    margin: 0;
+}
+
+.custom-separator-vertical {
+    width: 2px;
+    min-width: 2px;
+    max-width: 2px;
+    height: 32px;
+    background: #bbb;
+    margin: 8px 0;
+    border-radius: 2px;
+    align-self: center;
+    display: block;
+}
+
+/* Mode sombre... */
+
+
+.custom-darkmode-btn {
+    width: 100%;
+    height: 100%;
+    border-radius: 15px;
+    font-size: 1.1em;
+    padding: 0;
+    margin: 0 !important;
 }
 
 .custom-separator-vertical {
     width: 1.5px;
     height: 32px;
     background: #bbb;
-    margin: 0 2px;
+    margin: 0px;
     border-radius: 2px;
-}
-
-.custom-darkmode-btn {
-    background: #222;
-    color: #fff;
-    border: none;
-    border-radius: 15px;
-    padding: 6px 14px;
-    font-size: 1.1em;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s;
-}
-
-.custom-darkmode-btn:hover {
-    background: #444;
-}
-
-/* Pour surcharger les styles du bouton locate si besoin */
-#custom-locate-btn .leaflet-control-locate {
-    margin: 0;
-    box-shadow: none;
-    border-radius: 6px;
+    align-self: center;
 }
 
 /* Mode sombre général */
