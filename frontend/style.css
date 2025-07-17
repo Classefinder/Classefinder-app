@@ -116,6 +116,21 @@
 
 
 
+.leaflet-control-locate.active a .leaflet-control-locate-location-arrow {
+    background-image: url(/frontend/images/start-icon.svg);
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    color: red;
+    /* ou une autre couleur pour stroke=currentColor */
+}
+
+
+
+
 
 
 
@@ -129,15 +144,15 @@
 
 
 .custom-darkmode-btn {
+    background-image: url(/frontend/images/dark-icon.svg);
     width: 100%;
     height: 100%;
     border-radius: 0px 0px 15px 0px;
     font-size: 1.1em;
     padding: 0;
     margin: 0 !important;
+    cursor: pointer;
 }
-
-
 
 /* Mode sombre général */
 body.dark-mode {
