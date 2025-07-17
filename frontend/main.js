@@ -148,3 +148,25 @@ map.on('baselayerchange', function (e) {
         updateRouteDisplay(map, window.routeSegmentsByEtage, window.departMarkerByEtage, window.arriveeMarkerByEtage, idx);
     }
 });
+
+// Après le chargement des layers et de la localisation
+// Déplace le control layer dans le conteneur custom
+setTimeout(() => {
+    const leafletLayerControl = document.querySelector('.leaflet-control-layers');
+    const customLayerControl = document.getElementById('custom-layer-control');
+    if (leafletLayerControl && customLayerControl && !customLayerControl.hasChildNodes()) {
+        customLayerControl.appendChild(leafletLayerControl);
+    }
+    // Déplace le bouton locate dans le conteneur custom
+    const leafletLocate = document.querySelector('.leaflet-control-locate');
+    const customLocateBtn = document.getElementById('custom-locate-btn');
+    if (leafletLocate && customLocateBtn && !customLocateBtn.hasChildNodes()) {
+        customLocateBtn.appendChild(leafletLocate);
+    }
+}, 500);
+
+// Gestion du mode sombre
+const darkModeBtn = document.getElementById('dark-mode-toggle');
+darkModeBtn.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+});

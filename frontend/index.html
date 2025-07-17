@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-search@4.0.0/dist/leaflet-search.src.min.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+  <link rel="stylesheet" href="style.css" />
   <style>
     html, body, #map { height: 100%; margin: 0; padding: 0; }
     #map { width: 100vw; height: 100vh; }
@@ -14,6 +15,15 @@
 </head>
 <body>
   <div id="map"></div>
+  <div id="custom-controls-container">
+    <div id="custom-layer-control"></div>
+    <hr class="custom-separator-horizontal" />
+    <div class="custom-controls-row">
+      <div id="custom-locate-btn"></div>
+      <div class="custom-separator-vertical"></div>
+      <button id="dark-mode-toggle" class="custom-darkmode-btn" title="Mode sombre">🌙</button>
+    </div>
+  </div>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/leaflet-search@4.0.0/dist/leaflet-search.src.min.js"></script>
   <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
