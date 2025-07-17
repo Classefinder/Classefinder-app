@@ -1,24 +1,26 @@
-// Configuration dynamique des étages
+// Nouvelle configuration dynamique des étages avec code explicite
 const ETAGES = [
     {
-        nom: "Etage 1",
-        cheminUrl: "http://localhost:3000/geojson/chemins_etage1.geojson",
-        batimentUrl: "http://localhost:3000/geojson/salles_etage1.geojson"
-    },
-    {
-        nom: "Etage 0",
-        cheminUrl: "http://localhost:3000/geojson/chemins_etage0.geojson",
-        batimentUrl: "http://localhost:3000/geojson/salles_etage0.geojson"
-    },
-
-    {
         nom: "Etage -1",
+        code: "2",
         cheminUrl: "http://localhost:3000/geojson/chemins_etage2.geojson",
         batimentUrl: "http://localhost:3000/geojson/salles_etage2.geojson"
     },
+    {
+        nom: "Etage 0",
+        code: "0",
+        cheminUrl: "http://localhost:3000/geojson/chemins_etage0.geojson",
+        batimentUrl: "http://localhost:3000/geojson/salles_etage0.geojson"
+    },
+    {
+        nom: "Etage 1",
+        code: "1",
+        cheminUrl: "http://localhost:3000/geojson/chemins_etage1.geojson",
+        batimentUrl: "http://localhost:3000/geojson/salles_etage1.geojson"
+    },
 ];
 
-const map = L.map('map').setView([48.8566, 2.3522], 13);
+const map = L.map('map').setView([45.93728985010814, 6.132621267468342], 18);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 23,
     attribution: '© OpenStreetMap'
@@ -251,8 +253,10 @@ function getRouteAndPoints(start, end, markers, layersEtages, departIdx, arrivee
                             name: startName
                         }
                     };
+                    // Utilise le code d'étage explicite pour l'affectation
                     for (let i = 0; i < layersEtages.length; i++) {
-                        if (startName.includes(i.toString())) {
+                        const codeEtage = ETAGES[i].code;
+                        if (startName.includes(codeEtage)) {
                             var seg = L.geoJSON(segment, { color: 'red' });
                             window.routeSegmentsByEtage[i].push(seg);
                         }
