@@ -10,20 +10,20 @@ const ETAGES = [
     {
         nom: "Etage -1",
         code: "2",
-        cheminUrl: "http://localhost:3000/geojson/chemins_etage2.geojson",
-        batimentUrl: "http://localhost:3000/geojson/salles_etage2.geojson"
+        cheminUrl: "/geojson/chemins_etage2.geojson",
+        batimentUrl: "/geojson/salles_etage2.geojson"
     },
     {
         nom: "Etage 0",
         code: "0",
-        cheminUrl: "http://localhost:3000/geojson/chemins_etage0.geojson",
-        batimentUrl: "http://localhost:3000/geojson/salles_etage0.geojson"
+        cheminUrl: "/geojson/chemins_etage0.geojson",
+        batimentUrl: "/geojson/salles_etage0.geojson"
     },
     {
         nom: "Etage 1",
         code: "1",
-        cheminUrl: "http://localhost:3000/geojson/chemins_etage1.geojson",
-        batimentUrl: "http://localhost:3000/geojson/salles_etage1.geojson"
+        cheminUrl: "/geojson/chemins_etage1.geojson",
+        batimentUrl: "/geojson/salles_etage1.geojson"
     },
 ];
 
