@@ -48,22 +48,30 @@ export function setupLocationControl({ map, perimeterCenter, perimeterRadius, on
 
 // Ajoute un bouton pour placer le marqueur de départ à la position utilisateur
 export function addSetDepartButton({ map, getCurrentPosition, setDepartMarker }) {
-    const btn = L.control({ position: 'topleft' });
-    btn.onAdd = function () {
-        const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-        div.style.background = 'white';
-        div.style.cursor = 'pointer';
-        div.title = 'Définir le départ à ma position';
-        div.innerHTML = '<span style="display:inline-block;padding:4px 8px;">📍 Départ ici</span>';
-        div.onclick = function (e) {
-            e.preventDefault();
-            getCurrentPosition(function (latlng) {
-                setDepartMarker(latlng);
-            });
-        };
-        return div;
-    };
-    btn.addTo(map);
+    setTimeout(() => {
+        const searchStart = document.querySelector('.search-control-start');
+        if (searchStart) {
+            const div = document.createElement('div');
+            div.className = 'leaflet-bar leaflet-control set-depart-btn';
+            div.style.background = 'white';
+            div.style.cursor = 'pointer';
+            div.title = 'Définir le départ à ma position';
+            div.innerHTML = '<span style="display:inline-block;padding:4px 8px;"></span><img class="depart-icon" src="./images/locate-icon.svg" alt="Départ" />';
+            div.onclick = function (e) {
+                e.preventDefault();
+                getCurrentPosition(function (latlng) {
+                    setDepartMarker(latlng);
+                });
+            };
+            // Insérer le bouton juste avant le bouton de recherche
+            const searchBtn = searchStart.querySelector('.search-button');
+            if (searchBtn) {
+                searchStart.insertBefore(div, searchBtn);
+            } else {
+                searchStart.appendChild(div);
+            }
+        }
+    }, 300);
 }
 
 // Utilitaire pour obtenir la position courante via leaflet-control-locate

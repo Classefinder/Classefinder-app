@@ -21,9 +21,19 @@ export function setupSearchBars({
         collapsed: false,
         zoom: 16,
         marker: false,
-        textPlaceholder: 'Départ...'
+        textPlaceholder: 'Départ...',
+        id: 'search-control-start', // Ajout de l'id
+        className: 'search-control-start' // Ajout de la classe
     });
     map.addControl(searchCtrlDepart);
+    // Correction : Ajout manuel de l'id et de la classe après insertion dans le DOM
+    setTimeout(() => {
+        const searchStart = document.querySelectorAll('.leaflet-control-search');
+        if (searchStart && searchStart.length > 0) {
+            searchStart[0].id = 'search-control-start';
+            searchStart[0].classList.add('search-control-start');
+        }
+    }, 100);
     searchCtrlDepart.on('search:locationfound', function (e) {
         let etageIdx = -1;
         batimentFeatures.forEach((features, idx) => {
@@ -83,9 +93,19 @@ export function setupSearchBars({
         initial: false,
         zoom: 16,
         marker: false,
-        textPlaceholder: 'Arrivée...'
+        textPlaceholder: 'Arrivée...',
+        id: 'search-control-end', // Ajout de l'id
+        className: 'search-control-end' // Ajout de la classe
     });
     map.addControl(searchCtrlArrivee);
+    // Correction : Ajout manuel de l'id et de la classe après insertion dans le DOM
+    setTimeout(() => {
+        const searchEnd = document.querySelectorAll('.leaflet-control-search');
+        if (searchEnd && searchEnd.length > 1) {
+            searchEnd[1].id = 'search-control-end';
+            searchEnd[1].classList.add('search-control-end');
+        }
+    }, 100);
     searchCtrlArrivee.on('search:locationfound', function (e) {
         let etageIdx = -1;
         batimentFeatures.forEach((features, idx) => {
