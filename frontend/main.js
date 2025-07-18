@@ -11,19 +11,22 @@ const ETAGES = [
         nom: "Etage -1",
         code: "2",
         cheminUrl: "http://localhost:3000/geojson/chemins_etage2.geojson",
-        batimentUrl: "http://localhost:3000/geojson/salles_etage2.geojson"
+        batimentUrl: "http://localhost:3000/geojson/salles_etage2.geojson",
+        backgroundUrl: "./QTiles/etage2/{z}/{x}/{y}.png" // format compatible Leaflet
     },
     {
         nom: "Etage 0",
         code: "0",
         cheminUrl: "http://localhost:3000/geojson/chemins_etage0.geojson",
-        batimentUrl: "http://localhost:3000/geojson/salles_etage0.geojson"
+        batimentUrl: "http://localhost:3000/geojson/salles_etage0.geojson",
+        backgroundUrl: "./QTiles/etage0/{z}/{x}/{y}.png"
     },
     {
         nom: "Etage 1",
         code: "1",
         cheminUrl: "http://localhost:3000/geojson/chemins_etage1.geojson",
-        batimentUrl: "http://localhost:3000/geojson/salles_etage1.geojson"
+        batimentUrl: "http://localhost:3000/geojson/salles_etage1.geojson",
+        backgroundUrl: "./QTiles/etage1/{z}/{x}/{y}.png"
     },
 ];
 
@@ -32,7 +35,8 @@ const perimeterCenter = [45.93728985010814, 6.132621267468342]; // à adapter si
 const perimeterRadius = 120000; // en mètres
 
 const map = L.map('map').setView(perimeterCenter, 18);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+// Ajout du fond universel, toujours présent
+const universalBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 23,
     attribution: '© OpenStreetMap'
 }).addTo(map);
@@ -145,9 +149,28 @@ window.arriveeMarkerByEtage = [];
 map.on('baselayerchange', function (e) {
     const idx = batimentLayers.findIndex(l => l === e.layer);
     if (idx !== -1) {
+        setBackgroundForEtage(idx);
         updateRouteDisplay(map, window.routeSegmentsByEtage, window.departMarkerByEtage, window.arriveeMarkerByEtage, idx);
     }
 });
+
+// Ajout d'une gestion dynamique du fond de carte par étage
+let currentBaseLayer = null;
+function setBackgroundForEtage(idx) {
+    const etage = ETAGES[idx];
+    if (!etage || !etage.backgroundUrl) return;
+    if (currentBaseLayer) {
+        map.removeLayer(currentBaseLayer);
+    }
+    // Ajoute le fond dynamique en plus du fond universel
+    currentBaseLayer = L.tileLayer(etage.backgroundUrl, {
+        maxZoom: 23,
+        attribution: '© OpenStreetMap'
+    });
+    currentBaseLayer.addTo(map);
+}
+// Initialisation avec le fond du premier étage
+setBackgroundForEtage(0);
 
 // Après le chargement des layers et de la localisation
 // Déplace le control layer dans le conteneur custom
