@@ -293,3 +293,11 @@ body.dark-mode .leaflet-control-search .search-tooltip li {
     left: 50%;
     transform: translate(-50%, -50%);
 }
+
+/* ================================================== */
+/* NUANCES DE BLEU POUR CHAQUE ETAGE */
+/* ================================================== */
+
+
+
+/* Ajoute d'autres .etage-X si besoin dynamiquement */

@@ -25,6 +25,12 @@ const ETAGES = [
         cheminUrl: "http://localhost:3000/geojson/chemins_etage1.geojson",
         batimentUrl: "http://localhost:3000/geojson/salles_etage1.geojson"
     },
+    {
+        nom: "Etage 15",
+        code: "21",
+        cheminUrl: "http://localhost:3000/geojson/chemins_etage1.geojson",
+        batimentUrl: "http://localhost:3000/geojson/salles_etage1.geojson"
+    },
 ];
 
 // Paramètres du périmètre (exemple : centre du campus)

@@ -2,6 +2,17 @@ import { getLineCenter } from './geoUtils.js';
 import { updateRouteDisplay } from './routeDisplay.js';
 
 // Fonction pour récupérer et filtrer les segments d'itinéraire
+function getColorByIndex(idx, total, baseHue = 150, baseSat = 70, baseLight = 55) {
+    // Génère une couleur HSL en variant la teinte
+    const hue = (baseHue + (idx * (360 / total))) % 360;
+    return `hsl(${hue}, ${baseSat}%, ${baseLight}%)`;
+}
+
+function getRedShadeByIndex(idx, total, baseLight = 40) {
+    // Déclinaison rouge HSL, teinte 0, saturation 80%, luminosité variable
+    return `hsl(0, 80%, ${baseLight + idx * Math.floor(40 / Math.max(1, total - 1))}%)`;
+}
+
 export function getRouteAndPoints({
     map,
     start,
@@ -43,7 +54,7 @@ export function getRouteAndPoints({
                     for (let i = 0; i < layersEtages.length; i++) {
                         const codeEtage = ETAGES[i].code;
                         if (startName.includes(codeEtage)) {
-                            var seg = L.geoJSON(segment, { color: 'red' });
+                            var seg = L.geoJSON(segment, { style: { color: getRedShadeByIndex(i, layersEtages.length, 40), weight: 5 } });
                             routeSegmentsByEtage[i].push(seg);
                         }
                     }
