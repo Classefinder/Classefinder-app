@@ -13,6 +13,10 @@ function getRedShadeByIndex(idx, total, baseLight = 40) {
     return `hsl(0, 80%, ${baseLight + idx * Math.floor(40 / Math.max(1, total - 1))}%)`;
 }
 
+// Réglages animation AntPath
+const ANT_PATH_DELAY = 4000; // Vitesse (ms) - plus petit = plus rapide
+const ANT_PATH_WEIGHT = 5;  // Épaisseur du trait
+
 export function getRouteAndPoints({
     map,
     start,
@@ -54,19 +58,22 @@ export function getRouteAndPoints({
                     for (let i = 0; i < layersEtages.length; i++) {
                         const codeEtage = ETAGES[i].code;
                         if (startName.includes(codeEtage)) {
-                            // Utilisation d'AntPath pour l'animation
-                            var seg = new L.antPath(
-                                step.geometry.coordinates.map(([lng, lat]) => [lat, lng]),
-                                {
+                            // Utilisation d'AntPath si disponible, sinon fallback sur polyline classique
+                            var coords = step.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+                            var seg = (L.polyline && L.polyline.antPath)
+                                ? L.polyline.antPath(coords, {
                                     color: getRedShadeByIndex(i, layersEtages.length, 40),
-                                    weight: 5,
-                                    delay: 400,
+                                    weight: ANT_PATH_WEIGHT,
+                                    delay: ANT_PATH_DELAY,
                                     dashArray: [10, 20],
                                     pulseColor: '#FFFFFF',
                                     paused: false,
                                     reverse: false
-                                }
-                            );
+                                })
+                                : L.polyline(coords, {
+                                    color: getRedShadeByIndex(i, layersEtages.length, 40),
+                                    weight: ANT_PATH_WEIGHT
+                                });
                             routeSegmentsByEtage[i].push(seg);
                         }
                     }
