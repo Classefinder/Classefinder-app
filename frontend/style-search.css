@@ -179,10 +179,68 @@ body.dark-mode .leaflet-control-search .search-tooltip li {
     }
 
     #search-control-start .search-tooltip {
-        top: 147px;
+        top: 130px;
     }
 }
 
+/* ================================================== */
+/* AFFICHAGE TELEPHONE */
+/* ================================================== */
+
+@media (max-width: 600px),
+(hover: none) and (pointer: coarse) {
+
+
+    #custom-controls-container {
+        position: absolute;
+        top: 140px;
+        right: 10px;
+    }
+
+    .leaflet-control-search {
+        position: relative;
+        top: 0px;
+        width: calc(100vw - 20px);
+    }
+
+    .leaflet-control-search .search-tooltip {
+        width: calc(100% - 110px);
+        top: 65px;
+    }
+
+    #search-control-start .search-tooltip {
+        top: 130px;
+    }
+
+    .leaflet-control-search .search-tooltip {
+        width: calc(100% - 110px);
+        top: 65px;
+    }
+
+    /* Positionnement des notifications */
+    .leaflet-notification.leaflet-bottom {
+        width: 100% !important;
+        left: 0 !important;
+        right: auto !important;
+        bottom: 0 !important;
+        transform: none !important;
+        margin: 0 !important;
+        max-width: none !important;
+    }
+
+    .leaflet-notification .leaflet-control {
+        width: 100% !important;
+        border-radius: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .leaflet-notification .leaflet-notification-container {
+        width: 100vw !important;
+        max-width: none !important;
+    }
+
+}
 
 
 
@@ -206,7 +264,7 @@ body.dark-mode .leaflet-control-search .search-tooltip li {
     box-sizing: border-box;
     padding: 0;
     border: none !important;
-    background: #e0e0ff;
+    background: none !important;
     margin-right: 8px;
     margin-left: 0;
     margin-top: 0;
