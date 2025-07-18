@@ -18,6 +18,7 @@ export function setupSearchBars({
         layer: allBatimentLayers,
         propertyName: 'name',
         initial: false,
+        collapsed: false,
         zoom: 16,
         marker: false,
         textPlaceholder: 'Départ...'
@@ -78,6 +79,7 @@ export function setupSearchBars({
     const searchCtrlArrivee = new L.Control.Search({
         layer: allBatimentLayers,
         propertyName: 'name',
+        collapsed: false,
         initial: false,
         zoom: 16,
         marker: false,
