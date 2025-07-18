@@ -54,7 +54,19 @@ export function getRouteAndPoints({
                     for (let i = 0; i < layersEtages.length; i++) {
                         const codeEtage = ETAGES[i].code;
                         if (startName.includes(codeEtage)) {
-                            var seg = L.geoJSON(segment, { style: { color: getRedShadeByIndex(i, layersEtages.length, 40), weight: 5 } });
+                            // Utilisation d'AntPath pour l'animation
+                            var seg = new L.antPath(
+                                step.geometry.coordinates.map(([lng, lat]) => [lat, lng]),
+                                {
+                                    color: getRedShadeByIndex(i, layersEtages.length, 40),
+                                    weight: 5,
+                                    delay: 400,
+                                    dashArray: [10, 20],
+                                    pulseColor: '#FFFFFF',
+                                    paused: false,
+                                    reverse: false
+                                }
+                            );
                             routeSegmentsByEtage[i].push(seg);
                         }
                     }
