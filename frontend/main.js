@@ -44,11 +44,15 @@ const ETAGES = [
 const perimeterCenter = [45.93728985010814, 6.132621267468342]; // à adapter si besoin
 const perimeterRadius = 120000; // en mètres
 
-const map = L.map('map').setView(perimeterCenter, 18);
-// URLs pour le fond universel selon le thème
+// Ajout d'un niveau de zoom libre
+const map = L.map('map', {
+    zoomDelta: 0.1,
+    zoomSnap: 0
+}).setView(perimeterCenter, 18);
+// URLs MapTiler vectoriel pour le fond universel
 const UNIVERSAL_BASE_URLS = {
-    light: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    light: 'https://api.maptiler.com/maps/3b544fc3-420c-4a93-a594-a99b71d941bb/style.json?key=BiyHHi8FTQZ233ADqskZ',
+    dark: 'https://api.maptiler.com/maps/04c03a5d-804b-4c6f-9736-b7103fdb530b/style.json?key=BiyHHi8FTQZ233ADqskZ'
 };
 
 let universalBaseLayer = null;
@@ -57,10 +61,10 @@ function setUniversalBaseLayer(theme) {
     if (universalBaseLayer) {
         map.removeLayer(universalBaseLayer);
     }
-    const url = theme === 'dark' ? UNIVERSAL_BASE_URLS.dark : UNIVERSAL_BASE_URLS.light;
-    universalBaseLayer = L.tileLayer(url, {
-        maxZoom: 23,
-        attribution: theme === 'dark' ? '© CartoDB, OpenStreetMap' : '© OpenStreetMap'
+    const styleUrl = theme === 'dark' ? UNIVERSAL_BASE_URLS.dark : UNIVERSAL_BASE_URLS.light;
+    universalBaseLayer = L.maplibreGL({
+        style: styleUrl,
+        attribution: '© MapTiler, OpenStreetMap contributors'
     });
     universalBaseLayer.addTo(map);
 }
