@@ -55,7 +55,11 @@ export function setupSearchBars({
                     markerCoords = cheminObj.feature.geometry.coordinates.slice().reverse();
                 }
                 if (markerCoords) {
-                    if (window.departMarkerByEtage[etageIdx]) map.removeLayer(window.departMarkerByEtage[etageIdx]);
+                    // Supprime tous les anciens marqueurs de départ sur tous les étages
+                    window.departMarkerByEtage.forEach((marker, idx) => {
+                        if (marker) map.removeLayer(marker);
+                        window.departMarkerByEtage[idx] = null;
+                    });
                     const marker = L.marker(markerCoords).bindPopup('Départ : ' + e.layer.feature.properties.name);
                     window.departMarkerByEtage[etageIdx] = marker;
                     if (batimentLayers[etageIdx] && map.hasLayer(batimentLayers[etageIdx])) {
@@ -118,7 +122,11 @@ export function setupSearchBars({
         if (etageIdx !== -1) {
             const cheminObj = cheminFeatures[etageIdx] && cheminFeatures[etageIdx].find(obj => obj.feature.properties.name === e.layer.feature.properties.name);
             if (cheminObj) {
-                if (window.arriveeMarker) map.removeLayer(window.arriveeMarker);
+                // Supprime tous les anciens marqueurs d'arrivée sur tous les étages
+                window.arriveeMarkerByEtage.forEach((marker, idx) => {
+                    if (marker) map.removeLayer(marker);
+                    window.arriveeMarkerByEtage[idx] = null;
+                });
                 let markerCoords;
                 if (cheminObj.feature.geometry.type === 'LineString') {
                     const coords = cheminObj.feature.geometry.coordinates;
@@ -127,7 +135,6 @@ export function setupSearchBars({
                     markerCoords = cheminObj.feature.geometry.coordinates.slice().reverse();
                 }
                 if (markerCoords) {
-                    if (window.arriveeMarkerByEtage[etageIdx]) map.removeLayer(window.arriveeMarkerByEtage[etageIdx]);
                     const marker = L.marker(markerCoords).bindPopup('Arrivée : ' + e.layer.feature.properties.name);
                     window.arriveeMarkerByEtage[etageIdx] = marker;
                     if (batimentLayers[etageIdx] && map.hasLayer(batimentLayers[etageIdx])) {

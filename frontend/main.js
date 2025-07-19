@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 map,
                                 getCurrentPosition: cb => getCurrentUserPosition(map, cb),
                                 setDepartMarker: (latlng) => {
-                                    // Supprime uniquement les anciens marqueurs de départ sur tous les étages
+                                    // Supprime tous les anciens marqueurs de départ sur tous les étages
                                     window.departMarkerByEtage.forEach((marker, idx) => {
                                         if (marker) map.removeLayer(marker);
                                         window.departMarkerByEtage[idx] = null;
