@@ -205,16 +205,16 @@ window.arriveeMarkerByEtage = [];
 
 // Icônes personnalisés pour les marqueurs de départ et d'arrivée
 const departIcon = L.icon({
-    iconUrl: 'images/start-icon.svg',
-    iconSize: [32, 32], // ajuste la taille si besoin
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32]
+    iconUrl: "images/start-icon.svg",
+    iconSize: [15, 15], // size of the icon
+    iconAnchor: [7.5, 7.5], // point of the icon which will correspond to marker's location
+    popupAnchor: [0, -10], // point from which the popup should open relative to the iconAnchor
 });
 const arriveeIcon = L.icon({
     iconUrl: 'images/end-icon.svg',
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32]
+    iconSize: [15, 15], // size of the icon
+    iconAnchor: [7.5, 7.5], // point of the icon which will correspond to marker's location
+    popupAnchor: [0, -10], // point from which the popup should open relative
 });
 
 // Ajout d'une gestion dynamique du fond de carte par étage et par thème
