@@ -172,20 +172,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (darkModeBtn) {
         darkModeBtn.addEventListener('click', () => {
             toggleTheme();
-            // Optionnel : changer l'icône selon le thème
-            const img = darkModeBtn.querySelector('img');
-            if (img) {
-                img.src = document.body.classList.contains('dark-mode') ? 'images/light-icon.svg' : 'images/dark-icon.svg';
-                img.alt = document.body.classList.contains('dark-mode') ? 'Mode clair' : 'Mode sombre';
+            let img = darkModeBtn.querySelector('img');
+            if (!img) {
+                img = document.createElement('img');
+                img.style.width = '24px';
+                img.style.height = '24px';
+                darkModeBtn.appendChild(img);
             }
+            img.src = document.body.classList.contains('dark-mode') ? './images/light-icon.svg' : './images/dark-icon.svg';
+            img.alt = document.body.classList.contains('dark-mode') ? 'Mode clair' : 'Mode sombre';
         });
         // Met à jour l'icône au chargement et lors des changements de thème
         const updateBtnIcon = () => {
-            const img = darkModeBtn.querySelector('img');
-            if (img) {
-                img.src = document.body.classList.contains('dark-mode') ? 'images/light-icon.svg' : 'images/dark-icon.svg';
-                img.alt = document.body.classList.contains('dark-mode') ? 'Mode clair' : 'Mode sombre';
+            let img = darkModeBtn.querySelector('img');
+            if (!img) {
+                img = document.createElement('img');
+                img.style.width = '24px';
+                img.style.height = '24px';
+                darkModeBtn.appendChild(img);
             }
+            img.src = document.body.classList.contains('dark-mode') ? './images/light-icon.svg' : './images/dark-icon.svg';
+            img.alt = document.body.classList.contains('dark-mode') ? 'Mode clair' : 'Mode sombre';
         };
         updateBtnIcon();
         onThemeChange(updateBtnIcon);
@@ -205,13 +212,13 @@ window.arriveeMarkerByEtage = [];
 
 // Icônes personnalisés pour les marqueurs de départ et d'arrivée
 const departIcon = L.icon({
-    iconUrl: "images/start-icon.svg",
+    iconUrl: "./images/start-icon.svg",
     iconSize: [15, 15], // size of the icon
     iconAnchor: [7.5, 7.5], // point of the icon which will correspond to marker's location
     popupAnchor: [0, -10], // point from which the popup should open relative to the iconAnchor
 });
 const arriveeIcon = L.icon({
-    iconUrl: 'images/end-icon.svg',
+    iconUrl: './images/end-icon.svg',
     iconSize: [15, 15], // size of the icon
     iconAnchor: [7.5, 7.5], // point of the icon which will correspond to marker's location
     popupAnchor: [0, -10], // point from which the popup should open relative

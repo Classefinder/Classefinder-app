@@ -4,13 +4,13 @@ import { getLineCenter } from './geoUtils.js';
 
 // Icônes personnalisés pour les marqueurs de départ et d'arrivée
 const departIcon = L.icon({
-    iconUrl: "images/start-icon.svg",
+    iconUrl: "./images/start-icon.svg",
     iconSize: [15, 15], // size of the icon
     iconAnchor: [7.5, 7.5], // point of the icon which will correspond to marker's location
     popupAnchor: [0, -10], // point from which the popup should open relative to the iconAnchor
 });
 const arriveeIcon = L.icon({
-    iconUrl: 'images/end-icon.svg',
+    iconUrl: './images/end-icon.svg',
     iconSize: [15, 15], // size of the icon
     iconAnchor: [7.5, 7.5], // point of the icon which will correspond to marker's location
     popupAnchor: [0, -10], // point from which the popup should open relative

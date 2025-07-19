@@ -340,7 +340,6 @@ body.dark-mode .custom-separator-vertical {
     pointer-events: none;
     /* Supprime tout carré ou fond par défaut */
     background-color: transparent !important;
-    content: '';
 }
 
 body.dark-mode .set-depart-btn .depart-icon {
@@ -385,11 +384,11 @@ body.dark-mode #getLocationBtn {
 }
 
 body.dark-mode .leaflet-control-locate.active a .leaflet-control-locate-location-arrow {
-    background-image: url(/frontend/images/locate-on.svg);
+    background-image: url(./images/locate-on.svg);
 }
 
 body.dark-mode .leaflet-control-locate-location-arrow {
-    background-image: url(/frontend/images/locate-dark.svg) !important;
+    background-image: url(./images/locate-dark.svg) !important;
 }
 
 
@@ -461,7 +460,7 @@ body.dark-mode .leaflet-control-locate-location-arrow {
 }
 
 .leaflet-control-locate.active a .leaflet-control-locate-location-arrow {
-    background-image: url(/frontend/images/locate-on.svg) !important;
+    background-image: url(./images/locate-on.svg) !important;
     width: 24px;
     height: 24px;
     display: inline-block;
@@ -536,7 +535,7 @@ body.dark-mode .custom-darkmode-btn:hover {
     height: 25px !important;
     display: inline-block;
     margin: 0px;
-    background-image: url(/frontend/images/locate.svg) !important;
+    background-image: url(./images/locate.svg) !important;
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
