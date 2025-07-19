@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     // Place le marqueur de départ sur l'étage courant
                                     const currentIdx = batimentLayers.findIndex(l => map.hasLayer(l));
                                     if (currentIdx !== -1) {
-                                        const marker = L.marker(latlng).bindPopup('Départ : Ma position');
+                                        const marker = L.marker(latlng, { icon: departIcon }).bindPopup('Départ : Ma position');
                                         window.departMarkerByEtage[currentIdx] = marker;
                                         marker.addTo(map).openPopup();
                                         window.currentRouteStart = [latlng.lat, latlng.lng];
@@ -144,6 +144,20 @@ window.currentRouteEndIdx = null;
 // Stockage des marqueurs par étage
 window.departMarkerByEtage = [];
 window.arriveeMarkerByEtage = [];
+
+// Icônes personnalisés pour les marqueurs de départ et d'arrivée
+const departIcon = L.icon({
+    iconUrl: 'images/start-icon.svg',
+    iconSize: [32, 32], // ajuste la taille si besoin
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+});
+const arriveeIcon = L.icon({
+    iconUrl: 'images/end-icon.svg',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+});
 
 // Ajoute un listener sur le changement de baseLayer pour afficher les bons segments et marqueurs
 map.on('baselayerchange', function (e) {

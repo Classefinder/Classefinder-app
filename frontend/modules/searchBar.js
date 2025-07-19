@@ -1,4 +1,20 @@
+// Suppression de l'import inutile de Leaflet (L est global)
+// import L from 'leaflet';
 import { getLineCenter } from './geoUtils.js';
+
+// Icônes personnalisés pour les marqueurs de départ et d'arrivée
+const departIcon = L.icon({
+    iconUrl: "images/start-icon.svg",
+    iconSize: [15, 15], // size of the icon
+    iconAnchor: [7.5, 7.5], // point of the icon which will correspond to marker's location
+    popupAnchor: [0, -10], // point from which the popup should open relative to the iconAnchor
+});
+const arriveeIcon = L.icon({
+    iconUrl: 'images/end-icon.svg',
+    iconSize: [15, 15], // size of the icon
+    iconAnchor: [7.5, 7.5], // point of the icon which will correspond to marker's location
+    popupAnchor: [0, -10], // point from which the popup should open relative
+});
 
 // Initialise et gère les barres de recherche pour départ et arrivée
 export function setupSearchBars({
@@ -60,7 +76,7 @@ export function setupSearchBars({
                         if (marker) map.removeLayer(marker);
                         window.departMarkerByEtage[idx] = null;
                     });
-                    const marker = L.marker(markerCoords).bindPopup('Départ : ' + e.layer.feature.properties.name);
+                    const marker = L.marker(markerCoords, { icon: departIcon }).bindPopup('Départ : ' + e.layer.feature.properties.name);
                     window.departMarkerByEtage[etageIdx] = marker;
                     if (batimentLayers[etageIdx] && map.hasLayer(batimentLayers[etageIdx])) {
                         marker.addTo(map).openPopup();
@@ -135,7 +151,7 @@ export function setupSearchBars({
                     markerCoords = cheminObj.feature.geometry.coordinates.slice().reverse();
                 }
                 if (markerCoords) {
-                    const marker = L.marker(markerCoords).bindPopup('Arrivée : ' + e.layer.feature.properties.name);
+                    const marker = L.marker(markerCoords, { icon: arriveeIcon }).bindPopup('Arrivée : ' + e.layer.feature.properties.name);
                     window.arriveeMarkerByEtage[etageIdx] = marker;
                     if (batimentLayers[etageIdx] && map.hasLayer(batimentLayers[etageIdx])) {
                         marker.addTo(map).openPopup();
