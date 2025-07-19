@@ -41,6 +41,12 @@
 
 /* mode sombre */
 
+body.dark-mode,
+body.dark-mode .leaflet-control-locate a,
+body.dark-mode #map {
+    background: #1e1e1e !important;
+}
+
 body.dark-mode .leaflet-control-search,
 body.dark-mode .leaflet-control-search .search-tooltip,
 body.dark-mode .leaflet-tooltip-custom,
@@ -57,6 +63,7 @@ body.dark-mode .custom-geojson-button {
 body.dark-mode .leaflet-control-search input,
 body.dark-mode #getLocationBtn {
     background-color: #1e1e1e !important;
+    background: #1e1e1e !important;
     color: #ffffff !important;
 }
 
@@ -64,6 +71,7 @@ body.dark-mode .leaflet-control-search .search-button:hover,
 body.dark-mode .leaflet-control-search .search-cancel:hover,
 body.dark-mode .leaflet-control-search .search-tooltip li:hover,
 body.dark-mode .custom-geojson-button:hover,
+body.dark-mode .leaflet-control-locate a:hover,
 body.dark-mode .set-depart-btn:hover,
 body.dark-mode #getLocationBtn:hover {
     background-color: #444444 !important;
@@ -299,6 +307,17 @@ body.dark-mode .custom-separator-vertical {
     vertical-align: middle;
 }
 
+.set-depart-btn:focus,
+.set-depart-btn:active {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    position: relative;
+    overflow: visible;
+    /* Supprime tout contour ou effet focus natif */
+}
+
 .set-depart-btn span {
     display: none;
 }
@@ -312,8 +331,32 @@ body.dark-mode .custom-separator-vertical {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    background: url('./images/locate-icon.svg') no-repeat center center;
+    background-size: contain;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    border-radius: 50%;
+    pointer-events: none;
+    /* Supprime tout carré ou fond par défaut */
+    background-color: transparent !important;
+    content: '';
 }
 
+body.dark-mode .set-depart-btn .depart-icon {
+    background: url('./images/locate-icon-dark.svg') no-repeat center center;
+    background-size: contain;
+    background-color: transparent !important;
+}
+
+.set-depart-btn {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    position: relative;
+    overflow: visible;
+}
 
 
 /* ================================================== */
@@ -411,7 +454,6 @@ body.dark-mode #getLocationBtn {
     width: 100%;
     height: 100%;
     border-radius: 0px 0px 0px 13px !important;
-    background-color: #ffffff00;
     /* pour éviter les liens soulignés */
 }
 
@@ -442,6 +484,7 @@ body.dark-mode #getLocationBtn {
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
 }
 
 /* Si la .leaflet-control-locate a elle-même du padding/margin */

@@ -56,7 +56,7 @@ export function addSetDepartButton({ map, getCurrentPosition, setDepartMarker })
             div.style.background = 'white';
             div.style.cursor = 'pointer';
             div.title = 'Définir le départ à ma position';
-            div.innerHTML = '<span style="display:inline-block;padding:4px 8px;"></span><img class="depart-icon" src="./images/locate-icon.svg" alt="Départ" />';
+            div.innerHTML = '<span style="display:inline-block;padding:4px 8px;"></span><img class="depart-icon" alt=" " />';
             div.onclick = function (e) {
                 e.preventDefault();
                 getCurrentPosition(function (latlng) {
