@@ -1,9 +1,11 @@
+import { getBaseColorByIndex } from './colors.js';
+
 // Ce module gère le chargement conditionnel des données geojson selon la localisation
-function getColorByIndex(idx, total, baseHue = 220, baseSat = 70, baseLight = 55) {
-    // Génère une couleur HSL en variant la teinte
-    const hue = (baseHue + (idx * (360 / total))) % 360;
-    return `hsl(${hue}, ${baseSat}%, ${baseLight}%)`;
-}
+// function getColorByIndex(idx, total, baseHue = 220, baseSat = 70, baseLight = 55) {
+//     // Génère une couleur HSL en variant la teinte
+//     const hue = (baseHue + (idx * (360 / total))) % 360;
+//     return `hsl(${hue}, ${baseSat}%, ${baseLight}%)`;
+// }
 
 // Ajoute une classe CSS dynamique à chaque calque selon l'étage
 export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, cheminFeatures, layerControl, map, onAllLoaded }) {
@@ -17,7 +19,7 @@ export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, ch
                 const cheminLayer = L.geoJSON(data, {
                     style: function () {
                         // Déclinaison bleu HSL
-                        return { color: `hsl(220, 70%, ${40 + idx * 15}%)`, weight: 3, fillColor: `hsl(220, 70%, ${40 + idx * 15}%)` };
+                        return { color: getBaseColorByIndex(idx, ETAGES.length), weight: 3, fillColor: getBaseColorByIndex(idx, ETAGES.length) };
                     },
                     onEachFeature: (feature, layer) => {
                         features.push({ feature, layer });
@@ -34,7 +36,7 @@ export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, ch
                 const batLayer = L.geoJSON(data, {
                     style: function () {
                         // Déclinaison bleu HSL
-                        return { color: `hsl(220, 70%, ${40 + idx * 15}%)`, weight: 2, fillColor: `hsl(220, 70%, ${40 + idx * 15}%)` };
+                        return { color: getBaseColorByIndex(idx, ETAGES.length), weight: 2, fillColor: getBaseColorByIndex(idx, ETAGES.length) };
                     },
                     onEachFeature: (feature, layer) => {
                         features.push({ feature, layer });

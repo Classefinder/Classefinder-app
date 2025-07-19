@@ -1,17 +1,6 @@
 import { getLineCenter } from './geoUtils.js';
 import { updateRouteDisplay } from './routeDisplay.js';
-
-// Fonction pour récupérer et filtrer les segments d'itinéraire
-function getColorByIndex(idx, total, baseHue = 150, baseSat = 70, baseLight = 55) {
-    // Génère une couleur HSL en variant la teinte
-    const hue = (baseHue + (idx * (360 / total))) % 360;
-    return `hsl(${hue}, ${baseSat}%, ${baseLight}%)`;
-}
-
-function getRedShadeByIndex(idx, total, baseLight = 40) {
-    // Déclinaison rouge HSL, teinte 0, saturation 80%, luminosité variable
-    return `hsl(0, 80%, ${baseLight + idx * Math.floor(40 / Math.max(1, total - 1))}%)`;
-}
+import { getRouteColorByIndex } from './colors.js';
 
 // Réglages animation AntPath
 const ANT_PATH_DELAY = 4000; // Vitesse (ms) - plus petit = plus rapide
@@ -62,7 +51,7 @@ export function getRouteAndPoints({
                             var coords = step.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
                             var seg = (L.polyline && L.polyline.antPath)
                                 ? L.polyline.antPath(coords, {
-                                    color: getRedShadeByIndex(i, layersEtages.length, 40),
+                                    color: getRouteColorByIndex(i, layersEtages.length),
                                     weight: ANT_PATH_WEIGHT,
                                     delay: ANT_PATH_DELAY,
                                     dashArray: [10, 20],
@@ -71,7 +60,7 @@ export function getRouteAndPoints({
                                     reverse: false
                                 })
                                 : L.polyline(coords, {
-                                    color: getRedShadeByIndex(i, layersEtages.length, 40),
+                                    color: getRouteColorByIndex(i, layersEtages.length),
                                     weight: ANT_PATH_WEIGHT
                                 });
                             routeSegmentsByEtage[i].push(seg);
