@@ -1,7 +1,11 @@
 import { getLineCenter } from './geoUtils.js';
 import { updateRouteDisplay } from './routeDisplay.js';
+import { getRouteColorByIndex } from './colors.js';
 
-// Fonction pour récupérer et filtrer les segments d'itinéraire
+// Réglages animation AntPath
+const ANT_PATH_DELAY = 4000; // Vitesse (ms) - plus petit = plus rapide
+const ANT_PATH_WEIGHT = 5;  // Épaisseur du trait
+
 export function getRouteAndPoints({
     map,
     start,
@@ -43,7 +47,22 @@ export function getRouteAndPoints({
                     for (let i = 0; i < layersEtages.length; i++) {
                         const codeEtage = ETAGES[i].code;
                         if (startName.includes(codeEtage)) {
-                            var seg = L.geoJSON(segment, { color: 'red' });
+                            // Utilisation d'AntPath si disponible, sinon fallback sur polyline classique
+                            var coords = step.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+                            var seg = (L.polyline && L.polyline.antPath)
+                                ? L.polyline.antPath(coords, {
+                                    color: getRouteColorByIndex(i, layersEtages.length),
+                                    weight: ANT_PATH_WEIGHT,
+                                    delay: ANT_PATH_DELAY,
+                                    dashArray: [10, 20],
+                                    pulseColor: '#FFFFFF',
+                                    paused: false,
+                                    reverse: false
+                                })
+                                : L.polyline(coords, {
+                                    color: getRouteColorByIndex(i, layersEtages.length),
+                                    weight: ANT_PATH_WEIGHT
+                                });
                             routeSegmentsByEtage[i].push(seg);
                         }
                     }

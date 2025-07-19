@@ -1,0 +1,543 @@
+/* ================================================== */
+/* COMPOSANT REGLAGES */
+/* ================================================== */
+
+/* mode clair */
+
+.leaflet-control-search,
+.leaflet-control-search .search-tooltip,
+.leaflet-tooltip-custom,
+.leaflet-control-layers,
+.room-label,
+#custom-controls-container,
+.custom-geojson-button {
+    background-color: #ffffff !important;
+    border: 2px solid #d9d9d9 !important;
+    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2) !important;
+    color: #000000 !important;
+}
+
+#getLocationBtn {
+    background-color: #ffffff !important;
+}
+
+.leaflet-control-search .search-button:hover,
+.leaflet-control-search .search-cancel:hover,
+.leaflet-control-search .search-tooltip li:hover,
+.leaflet-control-locate a:hover,
+.set-depart-btn:hover,
+.custom-geojson-button:hover,
+#getLocationBtn:hover {
+    background-color: #d9d9d9 !important;
+}
+
+.custom-separator-horizontal {
+    border-top: 1px solid #D9D9D9;
+}
+
+.custom-separator-vertical {
+    background: #D9D9D9;
+}
+
+/* mode sombre */
+
+body.dark-mode,
+body.dark-mode .leaflet-control-locate a,
+body.dark-mode #map {
+    background: #1e1e1e !important;
+}
+
+body.dark-mode .leaflet-control-search,
+body.dark-mode .leaflet-control-search .search-tooltip,
+body.dark-mode .leaflet-tooltip-custom,
+body.dark-mode .leaflet-control-layers,
+body.dark-mode .room-label,
+body.dark-mode #custom-controls-container,
+body.dark-mode .custom-geojson-button {
+    background-color: #1e1e1e !important;
+    border: 2px solid #444444 !important;
+    box-shadow: 0 10px 10px rgba(105, 105, 105, 0.2) !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .leaflet-control-search input,
+body.dark-mode #getLocationBtn {
+    background-color: #1e1e1e !important;
+    background: #1e1e1e !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .leaflet-control-search .search-button:hover,
+body.dark-mode .leaflet-control-search .search-cancel:hover,
+body.dark-mode .leaflet-control-search .search-tooltip li:hover,
+body.dark-mode .custom-geojson-button:hover,
+body.dark-mode .leaflet-control-locate a:hover,
+body.dark-mode .set-depart-btn:hover,
+body.dark-mode #getLocationBtn:hover {
+    background-color: #444444 !important;
+}
+
+.leaflet-control-search .search-tooltip li {
+    background-color: #ffffff00;
+    color: #000000;
+}
+
+body.dark-mode .leaflet-control-search .search-tooltip li {
+    color: #ffffff;
+}
+
+body.dark-mode .custom-separator-horizontal {
+    border-top: 1px solid #444444;
+}
+
+body.dark-mode .custom-separator-vertical {
+    background: #444444;
+}
+
+
+/* ================================================== */
+/* COMPOSANT PRINCIPAL : BARRE DE RECHERCHE */
+/* ================================================== */
+
+.leaflet-control-search {
+    border-radius: 300px !important;
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px;
+    box-sizing: border-box;
+    width: calc(100vw - 20px);
+    height: 55px;
+    z-index: 1010;
+}
+
+.leaflet-control-search .search-button {
+    width: 40px;
+    height: 40px;
+    background: url('./images/search-icon.svg') no-repeat center center;
+    background-size: 60%;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    flex: 0 0 auto;
+    align-self: center;
+    -webkit-appearance: none;
+    appearance: none;
+    line-height: 0;
+}
+
+.leaflet-control-search .search-cancel {
+    background: url('./images/cancel-icon.svg') no-repeat center center;
+    background-size: 56%;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    border: none;
+    display: flex;
+    cursor: pointer;
+    right: 50px;
+}
+
+.leaflet-control-search .search-tooltip {
+    box-sizing: border-box;
+    padding: 10px;
+    border-radius: 15px;
+    font-size: 14px;
+    position: absolute;
+    top: 120%;
+    left: 0;
+    right: 0;
+    margin: 0;
+    z-index: 1010;
+    list-style-type: none;
+    padding-left: 20px;
+}
+
+.leaflet-control-search input {
+    outline: none;
+    border: none !important;
+    box-shadow: none !important;
+    width: calc(100% - 60px);
+    padding: 10px;
+    font-size: 14px;
+}
+
+.leaflet-control-search .search-tooltip li {
+    padding: 0px;
+    cursor: pointer;
+}
+
+.leaflet-control-search .search-button:hover {
+    background: url('./images/search-icon.svg') no-repeat center center;
+
+    background-size: 60%;
+}
+
+#search-control-start .search-cancel {
+    right: 90px;
+}
+
+/* ================================================== */
+/* AUTRE STYLE */
+/* ================================================== */
+
+
+.leaflet-control-zoom {
+    display: none;
+}
+
+/* ================================================== */
+/* AFFICHAGE PC */
+/* ================================================== */
+
+@media(min-width: 601px) {
+
+    .leaflet-control-search {
+        position: absolute;
+        top: 0px;
+        width: 370px;
+        padding: 10px;
+    }
+
+    #search-control-start .search-tooltip {
+        top: 130px;
+    }
+}
+
+/* ================================================== */
+/* AFFICHAGE TELEPHONE */
+/* ================================================== */
+
+@media (max-width: 600px),
+(hover: none) and (pointer: coarse) {
+
+
+    #custom-controls-container {
+        position: absolute;
+        top: 140px;
+        right: 10px;
+    }
+
+    .leaflet-control-search {
+        position: relative;
+        top: 0px;
+        width: calc(100vw - 20px);
+    }
+
+    .leaflet-control-search .search-tooltip {
+        width: calc(100% - 110px);
+        top: 65px;
+    }
+
+    #search-control-start .search-tooltip {
+        top: 130px;
+    }
+
+    .leaflet-control-search .search-tooltip {
+        width: calc(100% - 110px);
+        top: 65px;
+    }
+
+    /* Positionnement des notifications */
+    .leaflet-notification.leaflet-bottom {
+        width: 100% !important;
+        left: 0 !important;
+        right: auto !important;
+        bottom: 0 !important;
+        transform: none !important;
+        margin: 0 !important;
+        max-width: none !important;
+    }
+
+    .leaflet-notification .leaflet-control {
+        width: 100% !important;
+        border-radius: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .leaflet-notification .leaflet-notification-container {
+        width: 100vw !important;
+        max-width: none !important;
+    }
+
+}
+
+
+/* ================================================== */
+/* AUTRES COMPOSANTS */
+/* ================================================== */
+
+
+/* Bouton de départ */
+
+.set-depart-btn {
+    left: 8px;
+    bottom: 5px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 40px;
+    max-height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+    box-sizing: border-box;
+    padding: 0;
+    border: none !important;
+    background: none !important;
+    margin-right: 8px;
+    margin-left: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    align-self: center !important;
+    position: relative;
+    vertical-align: middle;
+}
+
+.set-depart-btn:focus,
+.set-depart-btn:active {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    position: relative;
+    overflow: visible;
+    /* Supprime tout contour ou effet focus natif */
+}
+
+.set-depart-btn span {
+    display: none;
+}
+
+.set-depart-btn .depart-icon {
+    width: 28px;
+    height: 28px;
+    display: block;
+    margin: 0 auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: url('./images/locate-icon.svg') no-repeat center center;
+    background-size: contain;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    border-radius: 50%;
+    pointer-events: none;
+    /* Supprime tout carré ou fond par défaut */
+    background-color: transparent !important;
+    content: '';
+}
+
+body.dark-mode .set-depart-btn .depart-icon {
+    background: url('./images/locate-icon-dark.svg') no-repeat center center;
+    background-size: contain;
+    background-color: transparent !important;
+}
+
+.set-depart-btn {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    position: relative;
+    overflow: visible;
+}
+
+
+/* ================================================== */
+/* GESTION DES ICONS */
+/* ================================================== */
+
+
+body.dark-mode .leaflet-control-search .search-cancel {
+    background: url('./images/cancel-icon-dark.svg') no-repeat center center;
+    background-size: 56%;
+}
+
+body.dark-mode .leaflet-control-search .search-button:hover {
+    background: url('./images/search-icon-dark.svg') no-repeat center center;
+    background-size: 60%;
+}
+
+body.dark-mode .leaflet-control-search .search-button {
+    background: url('./images/search-icon-dark.svg') no-repeat center center;
+    background-size: 60%;
+}
+
+body.dark-mode #getLocationBtn {
+    background: url('./images/locate-icon-dark.svg') no-repeat center center;
+    background-size: 65%;
+}
+
+body.dark-mode .leaflet-control-locate.active a .leaflet-control-locate-location-arrow {
+    background-image: url(/frontend/images/locate-on.svg);
+}
+
+body.dark-mode .leaflet-control-locate-location-arrow {
+    background-image: url(/frontend/images/locate-dark.svg) !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* 1. On fixe la taille du container principal */
+#custom-controls-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    border-radius: 15px;
+    width: auto;
+    min-width: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0px;
+}
+
+/* 2. La rangée de boutons */
+.custom-controls-row {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0;
+    width: 100%;
+    height: 40px;
+    background: transparent;
+}
+
+.custom-separator-horizontal {
+    border: none;
+    border-top: 1px solid #D9D9D9;
+    margin: 0px 2px 0px 2px;
+    border-radius: 15px;
+}
+
+.custom-separator-vertical {
+    width: 1px;
+    min-width: 1px;
+    height: 90%;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    background: #D9D9D9;
+    border-radius: 2px;
+    align-self: center;
+}
+
+.leaflet-control-locate a {
+    width: 100%;
+    height: 100%;
+    border-radius: 0px 0px 0px 13px !important;
+    /* pour éviter les liens soulignés */
+}
+
+.leaflet-control-locate.active a .leaflet-control-locate-location-arrow {
+    background-image: url(/frontend/images/locate-on.svg) !important;
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    /* ou une autre couleur pour stroke=currentColor */
+}
+
+/* 3. Chaque bouton à largeur fixe */
+#custom-locate-btn,
+.custom-darkmode-btn {
+    flex: 0 0 50%;
+    /* ne grandit pas, ne rétrécit pas, largeur = 50px */
+    width: 50%;
+    /* redondant mais parfois nécessaire selon le navigateur */
+    height: 100%;
+    /* occupe toute la hauteur de la rangée */
+    margin: 0;
+    padding: 0;
+    /* supprime tout padding par défaut */
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* Si la .leaflet-control-locate a elle-même du padding/margin */
+#custom-locate-btn .leaflet-control-locate {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    /* on remet à zéro pour ne pas déborder */
+    margin: 0;
+    border-radius: 0px 0px 0px 13px;
+}
+
+.custom-darkmode-btn {
+    border-radius: 0px 0px 13px 0px;
+}
+
+#custom-locate-btn .leaflet-control-locate,
+.custom-darkmode-btn {
+    background: none !important;
+    color: inherit !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transition: background 0.2s, color 0.2s;
+}
+
+#custom-locate-btn .leaflet-control-locate:hover,
+.custom-darkmode-btn:hover {
+    background: #d9d9d9 !important;
+}
+
+body.dark-mode #custom-locate-btn .leaflet-control-locate:hover,
+body.dark-mode .custom-darkmode-btn:hover {
+    background: #444444 !important;
+}
+
+/* Control layer (fond, bordure, ombre supprimés) */
+#custom-layer-control .leaflet-control-layers {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.leaflet-control-locate-location-arrow {
+    width: 25px !important;
+    height: 25px !important;
+    display: inline-block;
+    margin: 0px;
+    background-image: url(/frontend/images/locate.svg) !important;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
