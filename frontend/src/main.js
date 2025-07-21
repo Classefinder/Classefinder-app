@@ -11,8 +11,8 @@ const ETAGES = [
     {
         nom: "Etage -1",
         code: "2",
-        cheminUrl: "http://localhost:3000/geojson/chemins_etage2.geojson",
-        batimentUrl: "http://localhost:3000/geojson/salles_etage2.geojson",
+        cheminUrl: "/geojson/chemins_etage2.geojson",
+        batimentUrl: "/geojson/salles_etage2.geojson",
         backgroundUrl: {
             light: "./QTiles/etage2/{z}/{x}/{y}.png",
             dark: "./QTiles/etage2/{z}/{x}/{y}.png" // À remplacer si tu as un fond sombre spécifique
@@ -21,8 +21,8 @@ const ETAGES = [
     {
         nom: "Etage 0",
         code: "0",
-        cheminUrl: "http://localhost:3000/geojson/chemins_etage0.geojson",
-        batimentUrl: "http://localhost:3000/geojson/salles_etage0.geojson",
+        cheminUrl: "/geojson/chemins_etage0.geojson",
+        batimentUrl: "/geojson/salles_etage0.geojson",
         backgroundUrl: {
             light: "./QTiles/etage0/{z}/{x}/{y}.png",
             dark: "./QTiles/etage0/{z}/{x}/{y}.png"
@@ -31,8 +31,8 @@ const ETAGES = [
     {
         nom: "Etage 1",
         code: "1",
-        cheminUrl: "http://localhost:3000/geojson/chemins_etage1.geojson",
-        batimentUrl: "http://localhost:3000/geojson/salles_etage1.geojson",
+        cheminUrl: "/geojson/chemins_etage1.geojson",
+        batimentUrl: "/geojson/salles_etage1.geojson",
         backgroundUrl: {
             light: "./QTiles/etage1/{z}/{x}/{y}.png",
             dark: "./QTiles/etage1/{z}/{x}/{y}.png"
