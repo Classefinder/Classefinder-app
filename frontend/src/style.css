@@ -223,9 +223,7 @@ body.dark-mode .custom-separator-vertical {
 
 
     #custom-controls-container {
-        position: absolute;
-        top: 140px;
-        right: 10px;
+        top: 140px !important;
     }
 
     .leaflet-control-search {
