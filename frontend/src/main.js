@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     // Place le marqueur de départ sur l'étage courant
                                     const currentIdx = batimentLayers.findIndex(l => map.hasLayer(l));
                                     if (currentIdx !== -1) {
-                                        const marker = L.marker(latlng, { icon: departIcon }).bindPopup('Départ : Ma position');
+                                        const marker = L.marker(latlng, { icon: departIcon, className: 'start-marker' }).bindPopup('Départ : Ma position');
                                         window.departMarkerByEtage[currentIdx] = marker;
                                         marker.addTo(map).openPopup();
                                         window.currentRouteStart = [latlng.lat, latlng.lng];
@@ -146,7 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                                 arriveeIdx: window.currentRouteEndIdx,
                                                 ETAGES,
                                                 batimentLayers,
-                                                routeSegmentsByEtage: window.routeSegmentsByEtage
+                                                routeSegmentsByEtage: window.routeSegmentsByEtage,
+                                                markerOptions: { className: 'end-marker' }
                                             });
                                         }
                                     }
@@ -179,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 img.style.height = '24px';
                 darkModeBtn.appendChild(img);
             }
-            img.src = document.body.classList.contains('dark-mode') ? './images/light-icon.svg' : './images/dark-icon.svg';
+            img.src = document.body.classList.contains('dark-mode') ? '/images/light-icon.svg' : '/images/dark-icon.svg';
             img.alt = document.body.classList.contains('dark-mode') ? 'Mode clair' : 'Mode sombre';
         });
         // Met à jour l'icône au chargement et lors des changements de thème
@@ -191,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 img.style.height = '24px';
                 darkModeBtn.appendChild(img);
             }
-            img.src = document.body.classList.contains('dark-mode') ? './images/light-icon.svg' : './images/dark-icon.svg';
+            img.src = document.body.classList.contains('dark-mode') ? '/images/light-icon.svg' : '/images/dark-icon.svg';
             img.alt = document.body.classList.contains('dark-mode') ? 'Mode clair' : 'Mode sombre';
         };
         updateBtnIcon();
@@ -218,7 +219,7 @@ const departIcon = L.icon({
     popupAnchor: [0, -10], // point from which the popup should open relative to the iconAnchor
 });
 const arriveeIcon = L.icon({
-    iconUrl: './images/end-icon.svg',
+    iconUrl: '/images/end-icon.svg',
     iconSize: [15, 15], // size of the icon
     iconAnchor: [7.5, 7.5], // point of the icon which will correspond to marker's location
     popupAnchor: [0, -10], // point from which the popup should open relative

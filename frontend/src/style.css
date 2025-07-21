@@ -26,6 +26,7 @@
 .leaflet-control-search .search-tooltip li:hover,
 .leaflet-control-locate a:hover,
 .set-depart-btn:hover,
+#dark-mode-toggle.custom-darkmode-btn:hover,
 .custom-geojson-button:hover,
 #getLocationBtn:hover {
     background-color: #d9d9d9 !important;
@@ -72,6 +73,7 @@ body.dark-mode .leaflet-control-search .search-cancel:hover,
 body.dark-mode .leaflet-control-search .search-tooltip li:hover,
 body.dark-mode .custom-geojson-button:hover,
 body.dark-mode .leaflet-control-locate a:hover,
+body.dark-mode #dark-mode-toggle.custom-darkmode-btn:hover,
 body.dark-mode .set-depart-btn:hover,
 body.dark-mode #getLocationBtn:hover {
     background-color: #444444 !important;
@@ -115,7 +117,7 @@ body.dark-mode .custom-separator-vertical {
 .leaflet-control-search .search-button {
     width: 40px;
     height: 40px;
-    background: url('./images/search-icon.svg') no-repeat center center;
+    background: url('/images/search-icon.svg') no-repeat center center;
     background-size: 60%;
     border: none;
     border-radius: 50%;
@@ -135,7 +137,7 @@ body.dark-mode .custom-separator-vertical {
 }
 
 .leaflet-control-search .search-cancel {
-    background: url('./images/cancel-icon.svg') no-repeat center center;
+    background: url('/images/cancel-icon.svg') no-repeat center center;
     background-size: 56%;
     border-radius: 50%;
     width: 40px;
@@ -176,7 +178,7 @@ body.dark-mode .custom-separator-vertical {
 }
 
 .leaflet-control-search .search-button:hover {
-    background: url('./images/search-icon.svg') no-repeat center center;
+    background: url('/images/search-icon.svg') no-repeat center center;
 
     background-size: 60%;
 }
@@ -331,7 +333,7 @@ body.dark-mode .custom-separator-vertical {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: url('./images/locate-icon.svg') no-repeat center center;
+    background: url('/images/locate-icon.svg') no-repeat center center;
     background-size: contain;
     border: none;
     outline: none;
@@ -343,7 +345,7 @@ body.dark-mode .custom-separator-vertical {
 }
 
 body.dark-mode .set-depart-btn .depart-icon {
-    background: url('./images/locate-icon-dark.svg') no-repeat center center;
+    background: url('/images/locate-icon-dark.svg') no-repeat center center;
     background-size: contain;
     background-color: transparent !important;
 }
@@ -364,48 +366,32 @@ body.dark-mode .set-depart-btn .depart-icon {
 
 
 body.dark-mode .leaflet-control-search .search-cancel {
-    background: url('./images/cancel-icon-dark.svg') no-repeat center center;
+    background: url('/images/cancel-icon-dark.svg') no-repeat center center;
     background-size: 56%;
 }
 
 body.dark-mode .leaflet-control-search .search-button:hover {
-    background: url('./images/search-icon-dark.svg') no-repeat center center;
+    background: url('/images/search-icon-dark.svg') no-repeat center center;
     background-size: 60%;
 }
 
 body.dark-mode .leaflet-control-search .search-button {
-    background: url('./images/search-icon-dark.svg') no-repeat center center;
+    background: url('/images/search-icon-dark.svg') no-repeat center center;
     background-size: 60%;
 }
 
 body.dark-mode #getLocationBtn {
-    background: url('./images/locate-icon-dark.svg') no-repeat center center;
+    background: url('/images/locate-icon-dark.svg') no-repeat center center;
     background-size: 65%;
 }
 
 body.dark-mode .leaflet-control-locate.active a .leaflet-control-locate-location-arrow {
-    background-image: url(./images/locate-on.svg);
+    background-image: url('/images/locate-on.svg');
 }
 
 body.dark-mode .leaflet-control-locate-location-arrow {
-    background-image: url(./images/locate-dark.svg) !important;
+    background-image: url('/images/locate-dark.svg') !important;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /* 1. On fixe la taille du container principal */
@@ -460,7 +446,7 @@ body.dark-mode .leaflet-control-locate-location-arrow {
 }
 
 .leaflet-control-locate.active a .leaflet-control-locate-location-arrow {
-    background-image: url(./images/locate-on.svg) !important;
+    background-image: url(/images/locate-on.svg) !important;
     width: 24px;
     height: 24px;
     display: inline-block;
@@ -535,7 +521,7 @@ body.dark-mode .custom-darkmode-btn:hover {
     height: 25px !important;
     display: inline-block;
     margin: 0px;
-    background-image: url(./images/locate.svg) !important;
+    background-image: url(/images/locate.svg) !important;
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
