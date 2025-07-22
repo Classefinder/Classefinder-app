@@ -35,7 +35,7 @@ export function setupSearchBars({
         propertyName: 'name',
         initial: false,
         collapsed: false,
-        zoom: 16,
+        zoom: false,  // Désactive le zoom automatique
         marker: false,
         textPlaceholder: 'Départ...',
         id: 'search-control-start', // Ajout de l'id
@@ -111,7 +111,7 @@ export function setupSearchBars({
         propertyName: 'name',
         collapsed: false,
         initial: false,
-        zoom: 16,
+        zoom: false,  // Désactive le zoom automatique
         marker: false,
         textPlaceholder: 'Arrivée...',
         id: 'search-control-end', // Ajout de l'id
