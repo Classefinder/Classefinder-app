@@ -154,6 +154,19 @@ document.addEventListener('DOMContentLoaded', () => {
                                 }
                             });
                         }
+                        // Masquer tous les layers sauf celui de l'étage actif (0) après chargement
+                        batimentLayers.forEach((layer, idx) => {
+                            if (idx === 0) {
+                                if (!map.hasLayer(layer)) map.addLayer(layer);
+                            } else {
+                                if (map.hasLayer(layer)) map.removeLayer(layer);
+                            }
+                        });
+                        // Synchronise dynamiquement le fond de carte avec le premier layer affiché
+                        const firstVisibleIdx = batimentLayers.findIndex(layer => map.hasLayer(layer));
+                        if (firstVisibleIdx !== -1) {
+                            setBackgroundForEtage(firstVisibleIdx);
+                        }
                     }
                 });
             }
@@ -253,6 +266,15 @@ onThemeChange(() => {
 
 // Ajoute un listener sur le changement de baseLayer pour afficher les bons segments et marqueurs
 map.on('baselayerchange', function (e) {
+    const idx = batimentLayers.findIndex(l => l === e.layer);
+    if (idx !== -1) {
+        setBackgroundForEtage(idx);
+        updateRouteDisplay(map, window.routeSegmentsByEtage, window.departMarkerByEtage, window.arriveeMarkerByEtage, idx);
+    }
+});
+
+// Synchronise le fond de carte personnalisé avec le layer GeoJSON d'étage affiché (utile pour la recherche)
+map.on('layeradd', function (e) {
     const idx = batimentLayers.findIndex(l => l === e.layer);
     if (idx !== -1) {
         setBackgroundForEtage(idx);
