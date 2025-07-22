@@ -48,13 +48,28 @@ export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, ch
                 });
                 batimentLayers[idx] = batLayer;
                 batimentFeatures[idx] = features;
-                layerControl.addBaseLayer(batLayer, etage.nom);
-                if (idx === 0) {
-                    batLayer.addTo(map);
-                }
+
+                // On attend que tous les calques soient chargés avant de les ajouter au contrôle
                 loadedCount++;
-                if (loadedCount === ETAGES.length && typeof onAllLoaded === 'function') {
-                    onAllLoaded();
+                if (loadedCount === ETAGES.length) {
+                    // Trier les calques selon le code d'étage (ordre décroissant)
+                    const sortedLayers = ETAGES.map((etage, i) => ({
+                        layer: batimentLayers[i],
+                        nom: etage.nom,
+                        code: etage.code
+                    })).sort((a, b) => parseInt(b.code) - parseInt(a.code));
+
+                    // Ajouter les calques dans l'ordre trié
+                    sortedLayers.forEach((item, i) => {
+                        layerControl.addBaseLayer(item.layer, item.nom);
+                        if (i === 0) {
+                            item.layer.addTo(map);
+                        }
+                    });
+
+                    if (typeof onAllLoaded === 'function') {
+                        onAllLoaded();
+                    }
                 }
             });
     });
