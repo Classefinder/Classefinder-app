@@ -47,23 +47,28 @@ export function getRouteAndPoints({
                     for (let i = 0; i < layersEtages.length; i++) {
                         const codeEtage = ETAGES[i].code;
                         if (startName.includes(codeEtage)) {
-                            // Utilisation d'AntPath si disponible, sinon fallback sur polyline classique
+                            // Utilisation de L.Polyline + flèches directionnelles (via CDN)
                             var coords = step.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
-                            var seg = (L.polyline && L.polyline.antPath)
-                                ? L.polyline.antPath(coords, {
-                                    color: getRouteColorByIndex(i, layersEtages.length),
-                                    weight: ANT_PATH_WEIGHT,
-                                    delay: ANT_PATH_DELAY,
-                                    dashArray: [10, 20],
-                                    pulseColor: '#FFFFFF',
-                                    paused: false,
-                                    reverse: false
-                                })
-                                : L.polyline(coords, {
-                                    color: getRouteColorByIndex(i, layersEtages.length),
-                                    weight: ANT_PATH_WEIGHT
-                                });
+                            var seg = L.polyline(coords, {
+                                color: getRouteColorByIndex(i, layersEtages.length),
+                                weight: ANT_PATH_WEIGHT
+                            });
+                            var decorator = window.L && window.L.polylineDecorator ?
+                                window.L.polylineDecorator(seg, {
+                                    patterns: [
+                                        {
+                                            offset: 12,
+                                            repeat: 40,
+                                            symbol: window.L.Symbol.arrowHead({
+                                                pixelSize: 12,
+                                                polygon: false,
+                                                pathOptions: { stroke: true, color: getRouteColorByIndex(i, layersEtages.length), weight: 2 }
+                                            })
+                                        }
+                                    ]
+                                }) : null;
                             routeSegmentsByEtage[i].push(seg);
+                            if (decorator) routeSegmentsByEtage[i].push(decorator);
                         }
                     }
                 });
