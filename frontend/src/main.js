@@ -103,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     batimentFeatures,
                     cheminFeatures,
                     layerControl,
+                    getRouteAndPoints,
                     map,
                     onAllLoaded: () => {
                         if (!searchBarInitialized) {
