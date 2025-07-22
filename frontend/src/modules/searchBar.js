@@ -51,16 +51,27 @@ export function setupSearchBars({
         }
     }, 100);
     searchCtrlDepart.on('search:locationfound', function (e) {
-        let etageIdx = -1;
+        const matchingFeatures = [];
         batimentFeatures.forEach((features, idx) => {
-            features.forEach(obj => {
-                if (obj.feature.properties.name === e.layer.feature.properties.name) {
-                    etageIdx = idx;
-                }
-            });
+            if (map.hasLayer(batimentLayers[idx])) { // Vérifie si le layer est actif
+                features.forEach(obj => {
+                    if (obj.feature.properties.name === e.layer.feature.properties.name) {
+                        matchingFeatures.push({ feature: obj.feature, etageIdx: idx });
+                    }
+                });
+            }
         });
-        if (etageIdx !== -1) {
-            const cheminObj = cheminFeatures[etageIdx] && cheminFeatures[etageIdx].find(obj => obj.feature.properties.name === e.layer.feature.properties.name);
+
+        if (matchingFeatures.length > 1) {
+            const bounds = L.latLngBounds();
+            matchingFeatures.forEach(({ feature, etageIdx }) => {
+                const layerBounds = batimentLayers[etageIdx].getBounds();
+                bounds.extend(layerBounds);
+            });
+            map.fitBounds(bounds, { padding: [30, 30], maxZoom: 20 }); // Réduction du padding et augmentation du maxZoom
+        } else if (matchingFeatures.length === 1) {
+            const { feature, etageIdx } = matchingFeatures[0];
+            const cheminObj = cheminFeatures[etageIdx] && cheminFeatures[etageIdx].find(obj => obj.feature.properties.name === feature.properties.name);
             if (cheminObj) {
                 if (window.departMarker) map.removeLayer(window.departMarker);
                 let markerCoords;
@@ -71,12 +82,11 @@ export function setupSearchBars({
                     markerCoords = cheminObj.feature.geometry.coordinates.slice().reverse();
                 }
                 if (markerCoords) {
-                    // Supprime tous les anciens marqueurs de départ sur tous les étages
                     window.departMarkerByEtage.forEach((marker, idx) => {
                         if (marker) map.removeLayer(marker);
                         window.departMarkerByEtage[idx] = null;
                     });
-                    const marker = L.marker(markerCoords, { icon: departIcon }).bindPopup('Départ : ' + e.layer.feature.properties.name);
+                    const marker = L.marker(markerCoords, { icon: departIcon }).bindPopup('Départ : ' + feature.properties.name);
                     window.departMarkerByEtage[etageIdx] = marker;
                     if (batimentLayers[etageIdx] && map.hasLayer(batimentLayers[etageIdx])) {
                         marker.addTo(map).openPopup();
