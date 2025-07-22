@@ -15,6 +15,9 @@ const arriveeIcon = L.icon({
     popupAnchor: [0, -10],
 });
 
+// Liste noire des noms de features pour lesquels la popup ne doit pas s'afficher
+const blacklist = ["sanitaire", "toilettes", "escalier", ""];
+
 /**
  * Crée le contenu HTML du popup avec les boutons départ/arrivée
  * @param {string} name Le nom de la salle
@@ -49,6 +52,11 @@ export function addFeatureClickHandler(feature, layer, map, { etageIdx, batiment
     layer.on('click', function (e) {
         // Empêche la propagation du clic à la carte
         L.DomEvent.stopPropagation(e);
+
+        // Vérifie si le nom de la feature est dans la liste noire
+        if (feature.properties && blacklist.includes(feature.properties.name.toLowerCase())) {
+            return; // Ne fait rien si le nom est dans la liste noire
+        }
 
         // Calcule les limites de la feature et zoom
         const bounds = layer.getBounds();
