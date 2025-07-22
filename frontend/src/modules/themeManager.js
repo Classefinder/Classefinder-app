@@ -48,6 +48,8 @@ export function initThemeManager() {
     // Debug : log le thème détecté
     console.log('[themeManager] Thème initial appliqué :', initialTheme, '| Override:', userOverride);
     // Écoute les changements système
+    const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    darkModeMediaQuery.addEventListener('change', handleSystemThemeChange);
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', handleSystemThemeChange);
 }
 
