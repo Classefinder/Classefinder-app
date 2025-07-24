@@ -3,6 +3,7 @@ import { updateRouteDisplay } from './routeDisplay.js';
 import { getRouteColorByIndex } from './colors.js';
 
 window.allRouteSegments = window.allRouteSegments || [];
+const ANT_PATH_WEIGHT = 5; // Poids des segments de la route
 
 export function getRouteAndPoints({
     map,
@@ -103,7 +104,8 @@ export function getRouteAndPoints({
                         routeSegmentsByEtage[etageIdx] = [];
                     }
 
-                    window.routeAnimationState[etageIdx] = false;
+                    // Ajout d'un flag d'annulation pour l'animation de cet étage
+                    window.routeAnimationState[etageIdx] = { cancelled: false, finished: false };
 
                     if (map.hasLayer(batimentLayers[etageIdx])) {
                         let finishedCount = 0;
@@ -136,6 +138,12 @@ export function getRouteAndPoints({
                             let startTime = null;
 
                             function animate(currentTime) {
+                                // Vérifie si l'animation a été annulée (changement de layer)
+                                if (window.routeAnimationState[etageIdx]?.cancelled) {
+                                    // On arrête l'animation, on retire le segment
+                                    if (seg && map.hasLayer(seg)) map.removeLayer(seg);
+                                    return;
+                                }
                                 if (!startTime) startTime = currentTime;
                                 const progress = (currentTime - startTime) / totalDuration;
 
@@ -165,7 +173,7 @@ export function getRouteAndPoints({
                                     window.allRouteSegments.push(seg);
                                     finishedCount++;
                                     if (finishedCount === etageSequences.length) {
-                                        window.routeAnimationState[etageIdx] = true;
+                                        window.routeAnimationState[etageIdx].finished = true;
                                     }
                                 }
                             }
@@ -178,6 +186,12 @@ export function getRouteAndPoints({
 
                 window._routeLayerChangeFunction = function (e) {
                     const idx = batimentLayers.findIndex(l => l === e.layer);
+                    // Annule toutes les animations en cours sur tous les étages
+                    Object.keys(window.routeAnimationState).forEach(etageKey => {
+                        if (window.routeAnimationState[etageKey] && !window.routeAnimationState[etageKey].finished) {
+                            window.routeAnimationState[etageKey].cancelled = true;
+                        }
+                    });
                     if (idx !== -1) {
                         if (routeSegmentsByEtage[idx]) {
                             routeSegmentsByEtage[idx].forEach(seg => {
