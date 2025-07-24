@@ -2,11 +2,9 @@ import { getLineCenter } from './geoUtils.js';
 import { updateRouteDisplay } from './routeDisplay.js';
 import { getRouteColorByIndex } from './colors.js';
 
-// Réglages animation AntPath
-const ANT_PATH_DELAY = 4000; // Vitesse (ms) - plus petit = plus rapide
-const ANT_PATH_WEIGHT = 5;  // Épaisseur du trait
+const ANT_PATH_DELAY = 4000;
+const ANT_PATH_WEIGHT = 5;
 
-// Variable globale pour suivre tous les segments de route
 window.allRouteSegments = window.allRouteSegments || [];
 
 export function getRouteAndPoints({
@@ -21,28 +19,28 @@ export function getRouteAndPoints({
     batimentLayers,
     routeSegmentsByEtage
 }) {
-    // 1. NETTOYAGE GLOBAL - Supprime TOUS les segments existants
+    // Nettoyage global
     window.allRouteSegments.forEach(seg => {
         if (seg && map.hasLayer(seg)) {
             map.removeLayer(seg);
         }
     });
-    window.allRouteSegments = []; // Réinitialise la liste
+    window.allRouteSegments = [];
 
-    // 2. Réinitialise les segments par étage
+    // Réinitialisation des segments par étage
     if (routeSegmentsByEtage) {
         for (let i = 0; i < layersEtages.length; i++) {
             routeSegmentsByEtage[i] = [];
         }
     }
 
-    // 3. Gestion de l'écouteur - Supprime l'ancien s'il existe
+    // Suppression de l'ancien écouteur
     if (window._routeLayerChangeFunction) {
         map.off('baselayerchange', window._routeLayerChangeFunction);
         window._routeLayerChangeFunction = null;
     }
 
-    // Réinitialiser l'état d'animation
+    // Réinitialisation de l'état d'animation
     window.routeAnimationState = {};
 
     var osrmUrl = `https://classefinder.duckdns.org/osrm/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?steps=true&geometries=geojson&overview=full`;
@@ -51,10 +49,10 @@ export function getRouteAndPoints({
         .then(data => {
             if (data.routes && data.routes.length > 0) {
                 var route = data.routes[0];
-                // Correction : regroupe les points continus, sépare seulement les MultiLineString
                 let sequences = [];
                 let currentEtageIdx = null;
                 let currentSeq = [];
+
                 route.legs[0].steps.forEach((step, idx) => {
                     var startName = step.name || "";
                     let etageIdx = -1;
@@ -64,8 +62,10 @@ export function getRouteAndPoints({
                             break;
                         }
                     }
+
                     let stepCoordsRaw = step.geometry.coordinates;
                     let isMultiLine = Array.isArray(stepCoordsRaw[0][0]);
+
                     if (etageIdx !== currentEtageIdx) {
                         if (currentSeq.length > 1 && currentEtageIdx !== null) {
                             sequences.push({ etageIdx: currentEtageIdx, coords: currentSeq });
@@ -73,8 +73,8 @@ export function getRouteAndPoints({
                         currentEtageIdx = etageIdx;
                         currentSeq = [];
                     }
+
                     if (isMultiLine) {
-                        // Si MultiLineString, chaque sous-ligne devient une séquence séparée
                         stepCoordsRaw.forEach((seg, segIdx) => {
                             let stepCoords = seg.map(([lng, lat]) => [lat, lng]);
                             if (stepCoords.length > 1) {
@@ -82,28 +82,23 @@ export function getRouteAndPoints({
                             }
                         });
                     } else {
-                        // LineString : ajoute les points à la séquence courante
                         let stepCoords = stepCoordsRaw.map(([lng, lat]) => [lat, lng]);
-                        if (currentSeq.length > 0) stepCoords = stepCoords.slice(1); // évite doublons
+                        if (currentSeq.length > 0) stepCoords = stepCoords.slice(1);
                         currentSeq.push(...stepCoords);
                     }
                 });
+
                 if (currentSeq.length > 1 && currentEtageIdx !== null) {
                     sequences.push({ etageIdx: currentEtageIdx, coords: currentSeq });
                 }
 
-                // Animation par étage : on prépare tous les segments, mais on n'affiche que sur le layer actif
                 window.routeAnimationState = window.routeAnimationState || {};
                 const currentEtageActiveIdx = batimentLayers.findIndex(l => map.hasLayer(l));
 
-
-                // Anime toutes les séquences d'un même étage en parallèle
                 function animateEtage(etageIdx) {
-                    // Récupère toutes les séquences de cet étage
                     const etageSequences = sequences.filter(s => s.etageIdx === etageIdx && s.coords && s.coords.length > 1);
                     if (!etageSequences.length) return;
 
-                    // Toujours retirer les segments existants de l'étage courant
                     if (routeSegmentsByEtage[etageIdx]) {
                         routeSegmentsByEtage[etageIdx].forEach(seg => {
                             if (seg && map.hasLayer(seg)) map.removeLayer(seg);
@@ -113,13 +108,12 @@ export function getRouteAndPoints({
 
                     window.routeAnimationState[etageIdx] = false;
 
-                    // N'affiche les segments que si le layer est actif
                     if (map.hasLayer(batimentLayers[etageIdx])) {
                         let finishedCount = 0;
                         etageSequences.forEach((sequence) => {
                             const coords = sequence.coords;
                             if (!coords || coords.length < 2) return;
-                            // Interpoler plus de points pour une animation plus fluide
+
                             const interpolatedCoords = [];
                             for (let i = 0; i < coords.length - 1; i++) {
                                 const start = coords[i];
@@ -141,7 +135,7 @@ export function getRouteAndPoints({
                             seg.addTo(map);
 
                             let idx = 1;
-                            const totalDuration = 4000; // Durée légèrement plus longue pour compenser les points supplémentaires
+                            const totalDuration = 4000;
                             let startTime = null;
 
                             function animate(currentTime) {
@@ -170,7 +164,6 @@ export function getRouteAndPoints({
                                         seg.addLatLng(interpolatedCoords[idx]);
                                         idx++;
                                     }
-                                    // Ajouter le segment à la liste par étage et à la liste globale
                                     routeSegmentsByEtage[etageIdx].push(seg);
                                     window.allRouteSegments.push(seg);
                                     finishedCount++;
@@ -184,31 +177,31 @@ export function getRouteAndPoints({
                     }
                 }
 
-                // Anime tous les étages concernés (prépare les segments, mais n'affiche que sur le layer actif)
                 sequences.forEach(seq => animateEtage(seq.etageIdx));
 
-                // 4. NOUVEL ÉCOUTEUR avec closure actuelle
                 window._routeLayerChangeFunction = function (e) {
                     const idx = batimentLayers.findIndex(l => l === e.layer);
                     if (idx !== -1) {
-                        // Nettoie seulement les segments actuels de l'étage
                         if (routeSegmentsByEtage[idx]) {
                             routeSegmentsByEtage[idx].forEach(seg => {
                                 if (seg && map.hasLayer(seg)) map.removeLayer(seg);
                             });
                             routeSegmentsByEtage[idx] = [];
                         }
-                        // Réanime si nécessaire
                         const seq = sequences.find(s => s.etageIdx === idx);
                         if (seq) animateEtage(idx);
                     }
                 };
 
-                // Installe le nouvel écouteur
                 map.on('baselayerchange', window._routeLayerChangeFunction);
 
                 updateRouteDisplay(map, routeSegmentsByEtage, window.departMarkerByEtage, window.arriveeMarkerByEtage, currentEtageActiveIdx !== -1 ? currentEtageActiveIdx : departIdx);
-                map.fitBounds(L.latLngBounds([start, end]));
+
+                // Fit bounds conditionnel
+                const routeBounds = L.latLngBounds([start, end]);
+                if (!map.getBounds().contains(routeBounds)) {
+                    map.fitBounds(routeBounds, { padding: [50, 50] });
+                }
             } else {
                 console.error('Aucune route trouvée');
             }
