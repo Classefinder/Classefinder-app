@@ -143,17 +143,25 @@ export function setupSearchBars({
     }, 100);
 
     searchCtrlArrivee.on('search:locationfound', function (e) {
-        let etageIdx = -1;
+        const matchingFeatures = [];
         batimentFeatures.forEach((features, idx) => {
             features.forEach(obj => {
                 if (obj.feature.properties.name === e.layer.feature.properties.name) {
-                    etageIdx = idx;
+                    matchingFeatures.push({ feature: obj.feature, etageIdx: idx });
                 }
             });
         });
 
-        if (etageIdx !== -1) {
-            const cheminObj = cheminFeatures[etageIdx] && cheminFeatures[etageIdx].find(obj => obj.feature.properties.name === e.layer.feature.properties.name);
+        if (matchingFeatures.length > 1) {
+            const bounds = L.latLngBounds();
+            matchingFeatures.forEach(({ feature, etageIdx }) => {
+                const layerBounds = batimentLayers[etageIdx].getBounds();
+                bounds.extend(layerBounds);
+            });
+            map.fitBounds(bounds, { padding: [30, 30], maxZoom: 20 });
+        } else if (matchingFeatures.length === 1) {
+            const { feature, etageIdx } = matchingFeatures[0];
+            const cheminObj = cheminFeatures[etageIdx] && cheminFeatures[etageIdx].find(obj => obj.feature.properties.name === feature.properties.name);
 
             if (cheminObj) {
                 // Activer le bon calque avant tout traitement
