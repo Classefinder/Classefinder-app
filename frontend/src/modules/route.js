@@ -2,9 +2,6 @@ import { getLineCenter } from './geoUtils.js';
 import { updateRouteDisplay } from './routeDisplay.js';
 import { getRouteColorByIndex } from './colors.js';
 
-const ANT_PATH_DELAY = 4000;
-const ANT_PATH_WEIGHT = 5;
-
 window.allRouteSegments = window.allRouteSegments || [];
 
 export function getRouteAndPoints({
@@ -135,7 +132,7 @@ export function getRouteAndPoints({
                             seg.addTo(map);
 
                             let idx = 1;
-                            const totalDuration = 4000;
+                            const totalDuration = 1500;
                             let startTime = null;
 
                             function animate(currentTime) {
