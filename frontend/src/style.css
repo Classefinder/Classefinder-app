@@ -4,6 +4,24 @@
 
 /* mode clair */
 
+/* Style pour les labels GeoJSON */
+.geojson-label {
+    background: none;
+    border: none;
+}
+
+.geojson-label div {
+    color: #000;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    text-align: center;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
 /* Styles pour le popup avec boutons départ/arrivée */
 .popup-content {
     padding: 10px;
