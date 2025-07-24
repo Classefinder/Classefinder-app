@@ -30,11 +30,11 @@ function createPopupContent(name) {
             <div class="popup-buttons">
                 <button class="popup-button start-button">
                     <img src="/images/start-icon.svg" alt="Départ" class="button-icon">
-                    Définir comme départ
+                    départ
                 </button>
                 <button class="popup-button end-button">
                     <img src="/images/end-icon.svg" alt="Arrivée" class="button-icon">
-                    Définir comme arrivée
+                    arrivée
                 </button>
             </div>
         </div>
