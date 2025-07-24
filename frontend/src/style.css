@@ -5,14 +5,18 @@
 /* mode clair */
 
 /* Style pour les labels GeoJSON */
-.geojson-label {
-    background: none;
-    border: none;
+
+body.dark-mode .geojson-label div {
+    background-color: #1e1e1e !important;
+    color: #ffffff !important;
+    border: #444444 2px solid;
 }
+
 
 .geojson-label div {
     color: #000;
     background-color: rgba(255, 255, 255, 0.8);
+    border: #d9d9d9 2px solid;
     border-radius: 15px;
     padding: 2px 6px;
     font-size: 12px;
@@ -22,9 +26,39 @@
     pointer-events: none;
 }
 
+
 /* Styles pour le popup avec boutons départ/arrivée */
-.popup-content {
+
+
+
+
+/* Contenu principal de la popup */
+.leaflet-popup-content {
+    font-family: 'Arial', sans-serif;
+    font-size: 14px;
+    color: #333;
+    background-color: #ffffff !important;
     padding: 0px;
+}
+
+/* Boîte complète de la popup (y compris le bord) */
+.leaflet-popup-content-wrapper {
+    background-color: #ffffff !important;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Pointe triangulaire */
+.leaflet-popup-tip {
+    background-color: #ffffff !important;
+}
+
+body.dark-mode .leaflet-popup-content,
+.leaflet-popup-content,
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+    background-color: #1e1e1e !important;
+    color: #ffffff;
 }
 
 .popup-title {
@@ -38,7 +72,6 @@
     display: flex;
     flex-direction: column;
     gap: 5px;
-    padding-right: 10px !important;
 }
 
 .popup-button {
@@ -62,6 +95,7 @@
 .popup-button .button-icon {
     width: 16px;
     height: 16px;
+    padding-right: 5px;
 }
 
 .start-button,
