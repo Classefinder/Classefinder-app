@@ -51,7 +51,7 @@ export function getRouteAndPoints({
         .then(data => {
             if (data.routes && data.routes.length > 0) {
                 var route = data.routes[0];
-                // Découper l'itinéraire en séquences consécutives d'étage
+                // Correction : regroupe les points continus, sépare seulement les MultiLineString
                 let sequences = [];
                 let currentEtageIdx = null;
                 let currentSeq = [];
@@ -64,7 +64,8 @@ export function getRouteAndPoints({
                             break;
                         }
                     }
-                    let stepCoords = step.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+                    let stepCoordsRaw = step.geometry.coordinates;
+                    let isMultiLine = Array.isArray(stepCoordsRaw[0][0]);
                     if (etageIdx !== currentEtageIdx) {
                         if (currentSeq.length > 1 && currentEtageIdx !== null) {
                             sequences.push({ etageIdx: currentEtageIdx, coords: currentSeq });
@@ -72,9 +73,20 @@ export function getRouteAndPoints({
                         currentEtageIdx = etageIdx;
                         currentSeq = [];
                     }
-                    // Pour éviter les doublons de points
-                    if (currentSeq.length > 0) stepCoords = stepCoords.slice(1);
-                    currentSeq.push(...stepCoords);
+                    if (isMultiLine) {
+                        // Si MultiLineString, chaque sous-ligne devient une séquence séparée
+                        stepCoordsRaw.forEach((seg, segIdx) => {
+                            let stepCoords = seg.map(([lng, lat]) => [lat, lng]);
+                            if (stepCoords.length > 1) {
+                                sequences.push({ etageIdx: currentEtageIdx, coords: stepCoords });
+                            }
+                        });
+                    } else {
+                        // LineString : ajoute les points à la séquence courante
+                        let stepCoords = stepCoordsRaw.map(([lng, lat]) => [lat, lng]);
+                        if (currentSeq.length > 0) stepCoords = stepCoords.slice(1); // évite doublons
+                        currentSeq.push(...stepCoords);
+                    }
                 });
                 if (currentSeq.length > 1 && currentEtageIdx !== null) {
                     sequences.push({ etageIdx: currentEtageIdx, coords: currentSeq });
@@ -84,9 +96,12 @@ export function getRouteAndPoints({
                 window.routeAnimationState = window.routeAnimationState || {};
                 const currentEtageActiveIdx = batimentLayers.findIndex(l => map.hasLayer(l));
 
+
+                // Anime toutes les séquences d'un même étage en parallèle
                 function animateEtage(etageIdx) {
-                    const seq = sequences.find(s => s.etageIdx === etageIdx);
-                    if (!seq || !seq.coords || seq.coords.length < 2) return;
+                    // Récupère toutes les séquences de cet étage
+                    const etageSequences = sequences.filter(s => s.etageIdx === etageIdx && s.coords && s.coords.length > 1);
+                    if (!etageSequences.length) return;
 
                     // Toujours retirer les segments existants de l'étage courant
                     if (routeSegmentsByEtage[etageIdx]) {
@@ -98,75 +113,74 @@ export function getRouteAndPoints({
 
                     window.routeAnimationState[etageIdx] = false;
 
-                    // N'affiche le segment que si le layer est actif
+                    // N'affiche les segments que si le layer est actif
                     if (map.hasLayer(batimentLayers[etageIdx])) {
-                        // Interpoler plus de points pour une animation plus fluide
-                        const interpolatedCoords = [];
-                        for (let i = 0; i < seq.coords.length - 1; i++) {
-                            const start = seq.coords[i];
-                            const end = seq.coords[i + 1];
-                            // Ajouter 5 points intermédiaires entre chaque paire de points
-                            for (let j = 0; j <= 5; j++) {
-                                const fraction = j / 5;
-                                interpolatedCoords.push([
-                                    start[0] + (end[0] - start[0]) * fraction,
-                                    start[1] + (end[1] - start[1]) * fraction
-                                ]);
+                        let finishedCount = 0;
+                        etageSequences.forEach((sequence) => {
+                            const coords = sequence.coords;
+                            if (!coords || coords.length < 2) return;
+                            // Interpoler plus de points pour une animation plus fluide
+                            const interpolatedCoords = [];
+                            for (let i = 0; i < coords.length - 1; i++) {
+                                const start = coords[i];
+                                const end = coords[i + 1];
+                                for (let j = 0; j <= 5; j++) {
+                                    const fraction = j / 5;
+                                    interpolatedCoords.push([
+                                        start[0] + (end[0] - start[0]) * fraction,
+                                        start[1] + (end[1] - start[1]) * fraction
+                                    ]);
+                                }
                             }
-                        }
-                        interpolatedCoords.push(seq.coords[seq.coords.length - 1]);
+                            interpolatedCoords.push(coords[coords.length - 1]);
 
-                        var seg = window.L.polyline([interpolatedCoords[0]], {
-                            color: getRouteColorByIndex(etageIdx, layersEtages.length),
-                            weight: ANT_PATH_WEIGHT
-                        });
-                        seg.addTo(map);
+                            var seg = window.L.polyline([interpolatedCoords[0]], {
+                                color: getRouteColorByIndex(etageIdx, layersEtages.length),
+                                weight: ANT_PATH_WEIGHT
+                            });
+                            seg.addTo(map);
 
-                        let idx = 1;
-                        const totalDuration = 4000; // Durée légèrement plus longue pour compenser les points supplémentaires
-                        let startTime = null;
+                            let idx = 1;
+                            const totalDuration = 4000; // Durée légèrement plus longue pour compenser les points supplémentaires
+                            let startTime = null;
 
-                        function animate(currentTime) {
-                            if (!startTime) startTime = currentTime;
-                            const progress = (currentTime - startTime) / totalDuration;
+                            function animate(currentTime) {
+                                if (!startTime) startTime = currentTime;
+                                const progress = (currentTime - startTime) / totalDuration;
 
-                            if (progress < 1) {
-                                // Utiliser une fonction d'accélération ease-in-out pour un mouvement plus naturel
-                                let easeProgress;
-                                if (progress < 0.5) {
-                                    // Ease-in pour la première moitié (accélération progressive)
-                                    easeProgress = 0.5 * Math.pow(2 * progress, 4);
+                                if (progress < 1) {
+                                    let easeProgress;
+                                    if (progress < 0.5) {
+                                        easeProgress = 0.5 * Math.pow(2 * progress, 4);
+                                    } else {
+                                        const t = 2 * (progress - 0.5);
+                                        easeProgress = 0.5 + 0.5 * (1 - Math.pow(1 - t, 4));
+                                    }
+                                    const targetIndex = Math.min(
+                                        Math.floor(easeProgress * interpolatedCoords.length),
+                                        interpolatedCoords.length - 1
+                                    );
+                                    while (idx <= targetIndex) {
+                                        seg.addLatLng(interpolatedCoords[idx]);
+                                        idx++;
+                                    }
+                                    requestAnimationFrame(animate);
                                 } else {
-                                    // Ease-out pour la seconde moitié (décélération progressive)
-                                    const t = 2 * (progress - 0.5);
-                                    easeProgress = 0.5 + 0.5 * (1 - Math.pow(1 - t, 4));
+                                    while (idx < interpolatedCoords.length) {
+                                        seg.addLatLng(interpolatedCoords[idx]);
+                                        idx++;
+                                    }
+                                    // Ajouter le segment à la liste par étage et à la liste globale
+                                    routeSegmentsByEtage[etageIdx].push(seg);
+                                    window.allRouteSegments.push(seg);
+                                    finishedCount++;
+                                    if (finishedCount === etageSequences.length) {
+                                        window.routeAnimationState[etageIdx] = true;
+                                    }
                                 }
-                                const targetIndex = Math.min(
-                                    Math.floor(easeProgress * interpolatedCoords.length),
-                                    interpolatedCoords.length - 1
-                                );
-
-                                while (idx <= targetIndex) {
-                                    seg.addLatLng(interpolatedCoords[idx]);
-                                    idx++;
-                                }
-
-                                requestAnimationFrame(animate);
-                            } else {
-                                // Assurer que tous les points sont ajoutés
-                                while (idx < interpolatedCoords.length) {
-                                    seg.addLatLng(interpolatedCoords[idx]);
-                                    idx++;
-                                }
-                                window.routeAnimationState[etageIdx] = true;
                             }
-                        }
-
-                        requestAnimationFrame(animate);
-
-                        // Ajouter le segment à la liste par étage et à la liste globale
-                        routeSegmentsByEtage[etageIdx].push(seg);
-                        window.allRouteSegments.push(seg);
+                            requestAnimationFrame(animate);
+                        });
                     }
                 }
 
