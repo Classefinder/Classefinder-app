@@ -4,6 +4,81 @@
 
 /* mode clair */
 
+/* Style pour les labels GeoJSON */
+.geojson-label {
+    background: none;
+    border: none;
+}
+
+.geojson-label div {
+    color: #000;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    text-align: center;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+/* Styles pour le popup avec boutons départ/arrivée */
+.popup-content {
+    padding: 10px;
+}
+
+.popup-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.popup-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.popup-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+    width: 100%;
+    background-color: #f0f0f0;
+}
+
+.popup-button:hover {
+    background-color: #e0e0e0;
+}
+
+.popup-button .button-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.start-button {
+    color: #4CAF50;
+}
+
+.end-button {
+    color: #f44336;
+}
+
+body.dark-mode .popup-button {
+    background-color: #404040;
+    color: #ffffff;
+}
+
+body.dark-mode .popup-button:hover {
+    background-color: #505050;
+}
+
 .leaflet-control-search,
 .leaflet-control-search .search-tooltip,
 .leaflet-tooltip-custom,

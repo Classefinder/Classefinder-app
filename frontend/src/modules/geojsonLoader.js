@@ -1,4 +1,5 @@
 import { getBaseColorByIndex } from './colors.js';
+import { addFeatureClickHandler } from './geoFeatureInteraction.js';
 
 // Ce module gère le chargement conditionnel des données geojson selon la localisation
 // function getColorByIndex(idx, total, baseHue = 220, baseSat = 70, baseLight = 55) {
@@ -8,7 +9,7 @@ import { getBaseColorByIndex } from './colors.js';
 // }
 
 // Ajoute une classe CSS dynamique à chaque calque selon l'étage
-export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, cheminFeatures, layerControl, map, onAllLoaded }) {
+export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, cheminFeatures, layerControl, map, onAllLoaded, getRouteAndPoints }) {
     let loadedCount = 0;
     ETAGES.forEach((etage, idx) => {
         // Calque chemin (jamais affiché, ni dans le control layer)
@@ -23,6 +24,15 @@ export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, ch
                     },
                     onEachFeature: (feature, layer) => {
                         features.push({ feature, layer });
+                        // Ajoute le gestionnaire de clic pour le zoom et les boutons
+                        addFeatureClickHandler(feature, layer, map, {
+                            etageIdx: idx,
+                            batimentFeatures,
+                            cheminFeatures,
+                            batimentLayers,
+                            ETAGES,
+                            getRouteAndPoints
+                        });
                         // Impossible d'ajouter une classe CSS directement, on utilise le style
                     }
                 });
@@ -40,9 +50,15 @@ export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, ch
                     },
                     onEachFeature: (feature, layer) => {
                         features.push({ feature, layer });
-                        if (feature.properties && feature.properties.name) {
-                            layer.bindPopup(feature.properties.name);
-                        }
+                        // Ajoute le gestionnaire de clic pour le zoom et les boutons
+                        addFeatureClickHandler(feature, layer, map, {
+                            etageIdx: idx,
+                            batimentFeatures,
+                            cheminFeatures,
+                            batimentLayers,
+                            ETAGES,
+                            getRouteAndPoints
+                        });
                         // Impossible d'ajouter une classe CSS directement, on utilise le style
                     }
                 });

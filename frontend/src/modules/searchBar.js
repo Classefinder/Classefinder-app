@@ -1,22 +1,18 @@
-// Suppression de l'import inutile de Leaflet (L est global)
-// import L from 'leaflet';
 import { getLineCenter } from './geoUtils.js';
 
-// Icônes personnalisés pour les marqueurs de départ et d'arrivée
 const departIcon = L.icon({
     iconUrl: "/images/start-icon.svg",
-    iconSize: [15, 15], // size of the icon
-    iconAnchor: [7.5, 7.5], // point of the icon which will correspond to marker's location
-    popupAnchor: [0, -10], // point from which the popup should open relative to the iconAnchor
+    iconSize: [15, 15],
+    iconAnchor: [7.5, 7.5],
+    popupAnchor: [0, -10],
 });
 const arriveeIcon = L.icon({
     iconUrl: '/images/end-icon.svg',
-    iconSize: [15, 15], // size of the icon
-    iconAnchor: [7.5, 7.5], // point of the icon which will correspond to marker's location
-    popupAnchor: [0, -10], // point from which the popup should open relative
+    iconSize: [15, 15],
+    iconAnchor: [7.5, 7.5],
+    popupAnchor: [0, -10],
 });
 
-// Initialise et gère les barres de recherche pour départ et arrivée
 export function setupSearchBars({
     map,
     batimentLayers,
@@ -30,19 +26,21 @@ export function setupSearchBars({
     let arrivee = null;
     let arriveeEtageIdx = null;
     const allBatimentLayers = L.featureGroup(batimentLayers);
+
+    // Search control for depart
     const searchCtrlDepart = new L.Control.Search({
         layer: allBatimentLayers,
         propertyName: 'name',
         initial: false,
         collapsed: false,
-        zoom: false,  // Désactive le zoom automatique
+        zoom: false,
         marker: false,
         textPlaceholder: 'Départ...',
-        id: 'search-control-start', // Ajout de l'id
-        className: 'search-control-start' // Ajout de la classe
+        id: 'search-control-start',
+        className: 'search-control-start'
     });
     map.addControl(searchCtrlDepart);
-    // Correction : Ajout manuel de l'id et de la classe après insertion dans le DOM
+
     setTimeout(() => {
         const searchStart = document.querySelectorAll('.leaflet-control-search');
         if (searchStart && searchStart.length > 0) {
@@ -50,39 +48,58 @@ export function setupSearchBars({
             searchStart[0].classList.add('search-control-start');
         }
     }, 100);
+
     searchCtrlDepart.on('search:locationfound', function (e) {
-        let etageIdx = -1;
+        const matchingFeatures = [];
         batimentFeatures.forEach((features, idx) => {
             features.forEach(obj => {
                 if (obj.feature.properties.name === e.layer.feature.properties.name) {
-                    etageIdx = idx;
+                    matchingFeatures.push({ feature: obj.feature, etageIdx: idx });
                 }
             });
         });
-        if (etageIdx !== -1) {
-            const cheminObj = cheminFeatures[etageIdx] && cheminFeatures[etageIdx].find(obj => obj.feature.properties.name === e.layer.feature.properties.name);
+
+        if (matchingFeatures.length > 1) {
+            const bounds = L.latLngBounds();
+            matchingFeatures.forEach(({ feature, etageIdx }) => {
+                const layerBounds = batimentLayers[etageIdx].getBounds();
+                bounds.extend(layerBounds);
+            });
+            map.fitBounds(bounds, { padding: [30, 30], maxZoom: 20 });
+        } else if (matchingFeatures.length === 1) {
+            const { feature, etageIdx } = matchingFeatures[0];
+            const cheminObj = cheminFeatures[etageIdx] && cheminFeatures[etageIdx].find(obj => obj.feature.properties.name === feature.properties.name);
+
             if (cheminObj) {
+                // Activer le bon calque avant tout traitement
+                if (!map.hasLayer(batimentLayers[etageIdx])) {
+                    batimentLayers.forEach(l => map.removeLayer(l));
+                    batimentLayers[etageIdx].addTo(map);
+                }
+
                 if (window.departMarker) map.removeLayer(window.departMarker);
                 let markerCoords;
+
                 if (cheminObj.feature.geometry.type === 'LineString') {
                     const coords = cheminObj.feature.geometry.coordinates;
                     markerCoords = getLineCenter(coords);
                 } else if (cheminObj.feature.geometry.type === 'Point') {
                     markerCoords = cheminObj.feature.geometry.coordinates.slice().reverse();
                 }
+
                 if (markerCoords) {
-                    // Supprime tous les anciens marqueurs de départ sur tous les étages
                     window.departMarkerByEtage.forEach((marker, idx) => {
                         if (marker) map.removeLayer(marker);
                         window.departMarkerByEtage[idx] = null;
                     });
-                    const marker = L.marker(markerCoords, { icon: departIcon }).bindPopup('Départ : ' + e.layer.feature.properties.name);
+
+                    const marker = L.marker(markerCoords, { icon: departIcon }).bindPopup('Départ : ' + feature.properties.name);
                     window.departMarkerByEtage[etageIdx] = marker;
-                    if (batimentLayers[etageIdx] && map.hasLayer(batimentLayers[etageIdx])) {
-                        marker.addTo(map).openPopup();
-                    }
+                    marker.addTo(map).openPopup(); // Toujours ajouter le marqueur
+
                     window.currentRouteStart = markerCoords;
                     window.currentRouteStartIdx = etageIdx;
+
                     if (window.currentRouteStart && window.currentRouteEnd) {
                         getRouteAndPoints({
                             map,
@@ -99,26 +116,24 @@ export function setupSearchBars({
                     }
                 }
             }
-            if (!map.hasLayer(batimentLayers[etageIdx])) {
-                batimentLayers.forEach(l => map.removeLayer(l));
-                batimentLayers[etageIdx].addTo(map);
-            }
             map.fitBounds(e.layer.getBounds());
         }
     });
+
+    // Search control for arrivee
     const searchCtrlArrivee = new L.Control.Search({
         layer: allBatimentLayers,
         propertyName: 'name',
         collapsed: false,
         initial: false,
-        zoom: false,  // Désactive le zoom automatique
+        zoom: false,
         marker: false,
         textPlaceholder: 'Arrivée...',
-        id: 'search-control-end', // Ajout de l'id
-        className: 'search-control-end' // Ajout de la classe
+        id: 'search-control-end',
+        className: 'search-control-end'
     });
     map.addControl(searchCtrlArrivee);
-    // Correction : Ajout manuel de l'id et de la classe après insertion dans le DOM
+
     setTimeout(() => {
         const searchEnd = document.querySelectorAll('.leaflet-control-search');
         if (searchEnd && searchEnd.length > 1) {
@@ -126,23 +141,40 @@ export function setupSearchBars({
             searchEnd[1].classList.add('search-control-end');
         }
     }, 100);
+
     searchCtrlArrivee.on('search:locationfound', function (e) {
-        let etageIdx = -1;
+        const matchingFeatures = [];
         batimentFeatures.forEach((features, idx) => {
             features.forEach(obj => {
                 if (obj.feature.properties.name === e.layer.feature.properties.name) {
-                    etageIdx = idx;
+                    matchingFeatures.push({ feature: obj.feature, etageIdx: idx });
                 }
             });
         });
-        if (etageIdx !== -1) {
-            const cheminObj = cheminFeatures[etageIdx] && cheminFeatures[etageIdx].find(obj => obj.feature.properties.name === e.layer.feature.properties.name);
+
+        if (matchingFeatures.length > 1) {
+            const bounds = L.latLngBounds();
+            matchingFeatures.forEach(({ feature, etageIdx }) => {
+                const layerBounds = batimentLayers[etageIdx].getBounds();
+                bounds.extend(layerBounds);
+            });
+            map.fitBounds(bounds, { padding: [30, 30], maxZoom: 20 });
+        } else if (matchingFeatures.length === 1) {
+            const { feature, etageIdx } = matchingFeatures[0];
+            const cheminObj = cheminFeatures[etageIdx] && cheminFeatures[etageIdx].find(obj => obj.feature.properties.name === feature.properties.name);
+
             if (cheminObj) {
-                // Supprime tous les anciens marqueurs d'arrivée sur tous les étages
+                // Activer le bon calque avant tout traitement
+                if (!map.hasLayer(batimentLayers[etageIdx])) {
+                    batimentLayers.forEach(l => map.removeLayer(l));
+                    batimentLayers[etageIdx].addTo(map);
+                }
+
                 window.arriveeMarkerByEtage.forEach((marker, idx) => {
                     if (marker) map.removeLayer(marker);
                     window.arriveeMarkerByEtage[idx] = null;
                 });
+
                 let markerCoords;
                 if (cheminObj.feature.geometry.type === 'LineString') {
                     const coords = cheminObj.feature.geometry.coordinates;
@@ -150,14 +182,15 @@ export function setupSearchBars({
                 } else if (cheminObj.feature.geometry.type === 'Point') {
                     markerCoords = cheminObj.feature.geometry.coordinates.slice().reverse();
                 }
+
                 if (markerCoords) {
                     const marker = L.marker(markerCoords, { icon: arriveeIcon }).bindPopup('Arrivée : ' + e.layer.feature.properties.name);
                     window.arriveeMarkerByEtage[etageIdx] = marker;
-                    if (batimentLayers[etageIdx] && map.hasLayer(batimentLayers[etageIdx])) {
-                        marker.addTo(map).openPopup();
-                    }
+                    marker.addTo(map).openPopup(); // Toujours ajouter le marqueur
+
                     window.currentRouteEnd = markerCoords;
                     window.currentRouteEndIdx = etageIdx;
+
                     if (window.currentRouteStart && window.currentRouteEnd) {
                         getRouteAndPoints({
                             map,
@@ -174,25 +207,7 @@ export function setupSearchBars({
                     }
                 }
             }
-            if (!map.hasLayer(batimentLayers[etageIdx])) {
-                batimentLayers.forEach(l => map.removeLayer(l));
-                batimentLayers[etageIdx].addTo(map);
-            }
             map.fitBounds(e.layer.getBounds());
-        }
-        if (depart && arrivee) {
-            getRouteAndPoints({
-                map,
-                start: depart,
-                end: arrivee,
-                markers: [window.departMarker, window.arriveeMarker],
-                layersEtages: batimentLayers,
-                departIdx: departEtageIdx,
-                arriveeIdx: arriveeEtageIdx,
-                ETAGES,
-                batimentLayers,
-                routeSegmentsByEtage: window.routeSegmentsByEtage
-            });
         }
     });
 }
