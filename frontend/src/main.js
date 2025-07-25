@@ -71,8 +71,6 @@ function setUniversalBaseLayer(theme) {
     universalBaseLayer.addTo(map);
 }
 
-// Déclaration AVANT toute utilisation
-const layerControl = L.control.layers(null, null, { collapsed: false }).addTo(map);
 
 // Initialisation du gestionnaire de thème
 initThemeManager();
@@ -113,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     batimentLayers,
                     batimentFeatures,
                     cheminFeatures,
-                    layerControl,
+                    layerControl: mapLayerControl,
                     getRouteAndPoints,
                     map,
                     onAllLoaded: () => {
