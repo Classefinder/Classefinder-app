@@ -2,10 +2,9 @@ import { getLineCenter } from './geoUtils.js';
 import { departIcon, arriveeIcon } from './icons.js';
 import { createLabel } from './labelManager.js';
 import { createButtonsWithLabel, forceShowButtons, hideButtons } from './buttonManager.js';
-import { BASE_HUE, BASE_SAT, BASE_LIGHT, getBaseColorByIndex } from './colors.js';
-
+import { getBaseColorByIndex } from './colors.js';
+import { BASE_HUE, BASE_SAT, BASE_LIGHT, blacklist } from './userConfig.js';
 // Liste noire des noms de features pour lesquels la popup ne doit pas s'afficher
-const blacklist = ["sanitaire", "toilettes", "escalier", ""];
 
 /**
  * Crée le contenu HTML du popup avec les boutons départ/arrivée

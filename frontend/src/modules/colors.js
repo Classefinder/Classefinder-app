@@ -1,8 +1,6 @@
 // ======= Couleurs de base ======= //
-// Modifie ici pour changer la couleur de base (ex: bleu par défaut)
-export const BASE_HUE = 220;   // 220 = bleu, 0 = rouge, 120 = vert, etc.
-export const BASE_SAT = 70;    // Saturation de base (0–100)
-export const BASE_LIGHT = 55;  // Luminosité de base (0–100)
+// Les couleurs de base sont maintenant configurables dans userConfig.js
+import { BASE_HUE, BASE_SAT, BASE_LIGHT } from './userConfig.js';
 
 // Modifie ici pour changer la couleur de l’itinéraire (ex: rouge par défaut)
 export const ROUTE_HUE = 0;

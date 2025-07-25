@@ -8,43 +8,7 @@ import { initThemeManager, getCurrentTheme, onThemeChange, toggleTheme, THEMES }
 import { setupTheme } from './modules/themeSetup.js';
 import { setupMapFeatures } from './modules/mapSetup.js';
 
-// Nouvelle configuration dynamique des étages avec code explicite
-const ETAGES = [
-    {
-        nom: "Etage -1",
-        code: "2",
-        cheminUrl: "/geojson/chemins_etage2.geojson",
-        batimentUrl: "/geojson/salles_etage2.geojson",
-        backgroundUrl: {
-            light: "./QTiles/etage2/{z}/{x}/{y}.png",
-            dark: "./QTiles/etage2/{z}/{x}/{y}.png" // À remplacer si tu as un fond sombre spécifique
-        }
-    },
-    {
-        nom: "Etage 0",
-        code: "0",
-        cheminUrl: "/geojson/chemins_etage0.geojson",
-        batimentUrl: "/geojson/salles_etage0.geojson",
-        backgroundUrl: {
-            light: "./QTiles/etage0/{z}/{x}/{y}.png",
-            dark: "./QTiles/etage0/{z}/{x}/{y}.png"
-        }
-    },
-    {
-        nom: "Etage 1",
-        code: "1",
-        cheminUrl: "/geojson/chemins_etage1.geojson",
-        batimentUrl: "/geojson/salles_etage1.geojson",
-        backgroundUrl: {
-            light: "./QTiles/etage1/{z}/{x}/{y}.png",
-            dark: "./QTiles/etage1/{z}/{x}/{y}.png"
-        }
-    },
-];
-
-// Paramètres du périmètre (exemple : centre du campus)
-const perimeterCenter = [45.93728985010814, 6.132621267468342]; // à adapter si besoin
-const perimeterRadius = 120000; // en mètres
+import { ETAGES, perimeterCenter, perimeterRadius } from './modules/userConfig.js';
 
 // Ajout d'un niveau de zoom libre
 const map = L.map('map', {
