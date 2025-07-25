@@ -1,3 +1,8 @@
+/* Masque uniquement le bouton fermé du Layer Control natif Leaflet, pas le panneau */
+.leaflet-control-layers .leaflet-control-layers-toggle {
+    display: none !important;
+}
+
 /* ================================================== */
 /* COMPOSANT REGLAGES */
 /* ================================================== */

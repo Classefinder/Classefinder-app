@@ -1,19 +1,6 @@
 import { getLineCenter } from './geoUtils.js';
-
-// Icônes personnalisées pour les marqueurs (réutilisées depuis searchBar.js)
-const departIcon = L.icon({
-    iconUrl: "/images/start-icon.svg",
-    iconSize: [15, 15],
-    iconAnchor: [7.5, 7.5],
-    popupAnchor: [0, -10],
-});
-
-const arriveeIcon = L.icon({
-    iconUrl: '/images/end-icon.svg',
-    iconSize: [15, 15],
-    iconAnchor: [7.5, 7.5],
-    popupAnchor: [0, -10],
-});
+import { departIcon, arriveeIcon } from './icons.js';
+import { createLabel } from './labelManager.js';
 
 // Liste noire des noms de features pour lesquels la popup ne doit pas s'afficher
 const blacklist = ["sanitaire", "toilettes", "escalier", ""];
@@ -48,51 +35,14 @@ function createPopupContent(name) {
  * @param {L.Map} map L'instance de la carte Leaflet
  * @param {Object} options Les options supplémentaires (etageIdx, batimentLayers, etc.)
  */
-// Configuration des labels
+
 const LABEL_MIN_ZOOM = 20;  // Niveau de zoom minimum pour afficher les labels
 const LABEL_MAX_ZOOM = 23;  // Niveau de zoom maximum pour afficher les labels
 
 export function addFeatureClickHandler(feature, layer, map, { etageIdx, batimentFeatures, cheminFeatures, batimentLayers, ETAGES, getRouteAndPoints }) {
     // Ajoute le label si la feature a un nom
     if (feature.properties && feature.properties.name && !blacklist.includes(feature.properties.name.toLowerCase())) {
-        const label = L.divIcon({
-            className: 'geojson-label',
-            html: `<div>${feature.properties.name}</div>`,
-            iconSize: null
-        });
-
-        const center = layer.getBounds().getCenter();
-        const labelMarker = L.marker(center, {
-            icon: label,
-            interactive: false,  // Désactive l'interaction avec le label
-            zIndexOffset: 1000  // Place le label au-dessus des autres éléments
-        });
-
-        // Fonction pour mettre à jour la visibilité du label
-        function updateLabelVisibility() {
-            const currentZoom = map.getZoom();
-            const isLayerVisible = map.hasLayer(layer);
-
-            if (currentZoom >= LABEL_MIN_ZOOM && currentZoom <= LABEL_MAX_ZOOM && isLayerVisible) {
-                if (!map.hasLayer(labelMarker)) {
-                    labelMarker.addTo(map);
-                }
-            } else {
-                if (map.hasLayer(labelMarker)) {
-                    map.removeLayer(labelMarker);
-                }
-            }
-        }
-
-        // Gestion de la visibilité du label en fonction du zoom et de la visibilité du layer
-        map.on('zoomend', updateLabelVisibility);
-
-        // Vérifie la visibilité du label quand le layer est ajouté/retiré de la carte
-        map.on('layeradd layerremove', function (e) {
-            if (e.layer === layer) {
-                updateLabelVisibility();
-            }
-        });
+        createLabel(feature, layer, map, LABEL_MIN_ZOOM, LABEL_MAX_ZOOM);
     }
 
     layer.on('click', function (e) {
