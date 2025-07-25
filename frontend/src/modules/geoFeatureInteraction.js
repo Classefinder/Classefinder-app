@@ -1,19 +1,5 @@
 import { getLineCenter } from './geoUtils.js';
-
-// Icônes personnalisées pour les marqueurs (réutilisées depuis searchBar.js)
-const departIcon = L.icon({
-    iconUrl: "/images/start-icon.svg",
-    iconSize: [15, 15],
-    iconAnchor: [7.5, 7.5],
-    popupAnchor: [0, -10],
-});
-
-const arriveeIcon = L.icon({
-    iconUrl: '/images/end-icon.svg',
-    iconSize: [15, 15],
-    iconAnchor: [7.5, 7.5],
-    popupAnchor: [0, -10],
-});
+import { departIcon, arriveeIcon } from './icons.js';
 
 // Liste noire des noms de features pour lesquels la popup ne doit pas s'afficher
 const blacklist = ["sanitaire", "toilettes", "escalier", ""];

@@ -1,17 +1,5 @@
 import { getLineCenter } from './geoUtils.js';
-
-const departIcon = L.icon({
-    iconUrl: "/images/start-icon.svg",
-    iconSize: [15, 15],
-    iconAnchor: [7.5, 7.5],
-    popupAnchor: [0, -10],
-});
-const arriveeIcon = L.icon({
-    iconUrl: '/images/end-icon.svg',
-    iconSize: [15, 15],
-    iconAnchor: [7.5, 7.5],
-    popupAnchor: [0, -10],
-});
+import { departIcon, arriveeIcon } from './icons.js';
 
 export function setupSearchBars({
     map,

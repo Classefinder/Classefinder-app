@@ -5,6 +5,8 @@ import { setupSearchBars } from './modules/searchBar.js';
 import { setupLocationControl, addSetDepartButton, getCurrentUserPosition } from './modules/location.js';
 import { loadGeojsonLayers } from './modules/geojsonLoader.js';
 import { initThemeManager, getCurrentTheme, onThemeChange, toggleTheme, THEMES } from './modules/themeManager.js';
+import { setupTheme } from './modules/themeSetup.js';
+import { setupMapFeatures } from './modules/mapSetup.js';
 
 // Nouvelle configuration dynamique des étages avec code explicite
 const ETAGES = [
@@ -77,10 +79,19 @@ initThemeManager();
 setUniversalBaseLayer(getCurrentTheme());
 onThemeChange(setUniversalBaseLayer);
 
+// Initialisation du thème
+setupTheme(map, UNIVERSAL_BASE_URLS);
+
+// Initialisation des fonctionnalités de la carte
+const { batimentLayers, batimentFeatures, cheminFeatures, layerControl: mapLayerControl } = setupMapFeatures({
+    map,
+    ETAGES,
+    perimeterCenter,
+    perimeterRadius,
+    getRouteAndPoints
+});
+
 // Stockage des couches et features par étage
-const batimentLayers = [];
-const batimentFeatures = [];
-const cheminFeatures = [];
 
 // Flags pour empêcher l'initialisation multiple
 let geojsonLoaded = false;
