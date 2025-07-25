@@ -1,6 +1,7 @@
 import { getLineCenter } from './geoUtils.js';
 import { departIcon, arriveeIcon } from './icons.js';
 import { createLabel } from './labelManager.js';
+import { BASE_HUE, BASE_SAT, BASE_LIGHT, getBaseColorByIndex } from './colors.js';
 
 // Liste noire des noms de features pour lesquels la popup ne doit pas s'afficher
 const blacklist = ["sanitaire", "toilettes", "escalier", ""];
@@ -43,6 +44,46 @@ export function addFeatureClickHandler(feature, layer, map, { etageIdx, batiment
     // Ajoute le label si la feature a un nom
     if (feature.properties && feature.properties.name && !blacklist.includes(feature.properties.name.toLowerCase())) {
         createLabel(feature, layer, map, LABEL_MIN_ZOOM, LABEL_MAX_ZOOM);
+    }
+
+    // Gestion du style dynamique (hover/click)
+    // On ne fait l'effet que si la feature a un nom et n'est pas blacklistée
+    if (feature.properties && feature.properties.name && !blacklist.includes(feature.properties.name.toLowerCase())) {
+        // On sauvegarde le style d'origine
+        const originalStyle = { ...layer.options };
+        // Couleur de base
+        const baseColor = getBaseColorByIndex(etageIdx, ETAGES.length);
+        // Hover: vert "horrible"
+        const hoverColor = 'hsl(120, 100%, 45%)'; // Vert vif
+        // Click: +30% saturation (garde le style précédent)
+        const activeSat = Math.min(BASE_SAT + 30, 100);
+        const activeColor = `hsl(${BASE_HUE}, ${activeSat}%, ${BASE_LIGHT}%)`;
+
+        // Pour savoir si la feature est sélectionnée
+        let isSelected = false;
+
+        // Hover effect
+        layer.on('mouseover', function () {
+            if (!isSelected) {
+                layer.setStyle({ color: hoverColor, fillColor: hoverColor });
+            }
+        });
+        layer.on('mouseout', function () {
+            if (!isSelected) {
+                layer.setStyle({ color: baseColor, fillColor: baseColor });
+            }
+        });
+
+        // Click effect (sélection)
+        layer.on('click', function () {
+            isSelected = true;
+            layer.setStyle({ color: activeColor, fillColor: activeColor });
+            // On désélectionne après un court délai (ou à la fermeture du popup)
+            setTimeout(() => {
+                isSelected = false;
+                layer.setStyle({ color: baseColor, fillColor: baseColor });
+            }, 800);
+        });
     }
 
     layer.on('click', function (e) {
