@@ -70,109 +70,19 @@ async function setupConfigSelector() {
     return;
   }
   selector.disabled = false;
-  // Charger la première config par défaut
-  await loadConfigFile(configs[0]);
-  selector.value = configs[0];
+  // Charger la config mémorisée si présente, sinon la première par défaut
+  let configToLoad = configs[0];
+  const storedConfig = localStorage.getItem('selectedConfig');
+  if (storedConfig && configs.includes(storedConfig)) {
+    configToLoad = storedConfig;
+    localStorage.removeItem('selectedConfig');
+  }
+  await loadConfigFile(configToLoad);
+  selector.value = configToLoad;
   selector.addEventListener('change', async (e) => {
-    // Charger la nouvelle config
-    await loadConfigFile(e.target.value);
-
-    // Réinitialiser les couches et paramètres dépendants
-    // 1. Vider les layers existants
-    batimentLayers.forEach(layer => { if (map.hasLayer(layer)) map.removeLayer(layer); });
-    cheminFeatures.length = 0;
-    batimentFeatures.length = 0;
-    batimentLayers.length = 0;
-    // 2. Réinitialiser les marqueurs et segments
-    window.routeSegmentsByEtage = [];
-    window.departMarkerByEtage = [];
-    window.arriveeMarkerByEtage = [];
-    window.currentRouteStart = null;
-    window.currentRouteEnd = null;
-    window.currentRouteStartIdx = null;
-    window.currentRouteEndIdx = null;
-    // 3. Réinitialiser les flags
-    geojsonLoaded = false;
-    searchBarInitialized = false;
-    departButtonAdded = false;
-    // 4. Réinitialiser le fond de carte
-    setBackgroundForEtage(0);
-    // 5. Relancer le chargement des couches avec la nouvelle config
-    loadGeojsonLayers({
-      ETAGES,
-      batimentLayers,
-      batimentFeatures,
-      cheminFeatures,
-      layerControl: mapLayerControl,
-      getRouteAndPoints,
-      map,
-      BASE_HUE,
-      BASE_SAT,
-      BASE_LIGHT,
-      blacklist,
-      onAllLoaded: () => {
-        if (!searchBarInitialized) {
-          searchBarInitialized = true;
-          setupSearchBars({
-            map,
-            batimentLayers,
-            batimentFeatures,
-            cheminFeatures,
-            ETAGES,
-            getRouteAndPoints
-          });
-        }
-        if (!departButtonAdded) {
-          departButtonAdded = true;
-          addSetDepartButton({
-            map,
-            getCurrentPosition: cb => getCurrentUserPosition(map, cb),
-            setDepartMarker: (latlng) => {
-              window.departMarkerByEtage.forEach((marker, idx) => {
-                if (marker) map.removeLayer(marker);
-                window.departMarkerByEtage[idx] = null;
-              });
-              const currentIdx = batimentLayers.findIndex(l => map.hasLayer(l));
-              if (currentIdx !== -1) {
-                const marker = L.marker(latlng, { icon: departIcon, className: 'start-marker' }).bindPopup('Départ : Ma position');
-                window.departMarkerByEtage[currentIdx] = marker;
-                marker.addTo(map).openPopup();
-                window.currentRouteStart = [latlng.lat, latlng.lng];
-                window.currentRouteStartIdx = currentIdx;
-                if (window.currentRouteStart && window.currentRouteEnd) {
-                  getRouteAndPoints({
-                    map,
-                    start: window.currentRouteStart,
-                    end: window.currentRouteEnd,
-                    markers: [marker, window.arriveeMarkerByEtage[window.currentRouteEndIdx]],
-                    layersEtages: batimentLayers,
-                    departIdx: window.currentRouteStartIdx,
-                    arriveeIdx: window.currentRouteEndIdx,
-                    ETAGES,
-                    batimentLayers,
-                    routeSegmentsByEtage: window.routeSegmentsByEtage,
-                    markerOptions: { className: 'end-marker' }
-                  });
-                }
-              }
-            }
-          });
-        }
-        // Masquer tous les layers sauf celui de l'étage actif (0) après chargement
-        batimentLayers.forEach((layer, idx) => {
-          if (idx === 0) {
-            if (!map.hasLayer(layer)) map.addLayer(layer);
-          } else {
-            if (map.hasLayer(layer)) map.removeLayer(layer);
-          }
-        });
-        // Synchronise dynamiquement le fond de carte avec le premier layer affiché
-        const firstVisibleIdx = batimentLayers.findIndex(layer => map.hasLayer(layer));
-        if (firstVisibleIdx !== -1) {
-          setBackgroundForEtage(firstVisibleIdx);
-        }
-      }
-    });
+    // Mémoriser le choix et recharger la page
+    localStorage.setItem('selectedConfig', e.target.value);
+    window.location.reload();
   });
 }
 
