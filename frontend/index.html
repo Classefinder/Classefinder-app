@@ -1,37 +1,65 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Carte Leaflet Multi-Calques</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-search@4.0.0/dist/leaflet-search.src.min.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
-  <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet" />
-  <link rel="stylesheet" href="src/style.css" />
-  <style>
-    html, body, #map { height: 100%; margin: 0; padding: 0; }
-    #map { width: 100vw; height: 100vh; }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
-  <div id="custom-controls-container">
-    <div id="custom-layer-control"></div>
-    <hr class="custom-separator-horizontal" />
-    <div class="custom-controls-row">
-      <div id="custom-locate-btn"></div>
-      <div class="custom-separator-vertical"></div>
-      <button id="dark-mode-toggle" class="custom-darkmode-btn" title="Mode sombre">
-        <span class="darkmode-icon"></span>
-      </button>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Carte Leaflet Multi-Calques</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/leaflet-search@4.0.0/dist/leaflet-search.src.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.css"
+    />
+    <link
+      href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="src/style.css" />
+    <style>
+      html,
+      body,
+      #map {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        width: 100vw;
+        height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="config-selector-container">
+      <select id="config-selector"></select>
     </div>
-  </div>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/leaflet-search@4.0.0/dist/leaflet-search.src.min.js"></script>
-  <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
-  <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
-  <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.20/leaflet-maplibre-gl.js"></script>
-  <script type="module" src="src/main.js"></script>
-</body>
+    <div id="custom-controls-container">
+      <div id="custom-layer-control"></div>
+      <hr class="custom-separator-horizontal" />
+      <div class="custom-controls-row">
+        <div id="custom-locate-btn"></div>
+        <div class="custom-separator-vertical"></div>
+        <button
+          id="dark-mode-toggle"
+          class="custom-darkmode-btn"
+          title="Mode sombre"
+        >
+          <span class="darkmode-icon"></span>
+        </button>
+      </div>
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-search@4.0.0/dist/leaflet-search.src.min.js"></script>
+    <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
+    <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
+    <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.20/leaflet-maplibre-gl.js"></script>
+    <script type="module" src="src/main.js"></script>
+  </body>
 </html>

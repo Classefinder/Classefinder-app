@@ -8,13 +8,79 @@ import { initThemeManager, getCurrentTheme, onThemeChange, toggleTheme, THEMES }
 import { setupTheme } from './modules/themeSetup.js';
 import { setupMapFeatures } from './modules/mapSetup.js';
 
-import { ETAGES, perimeterCenter, perimeterRadius } from './modules/userConfig.js';
+import * as userConfig from './modules/userConfig.js';
+
+// Variables de config dynamiques
+let ETAGES = userConfig.ETAGES;
+let perimeterCenter = userConfig.perimeterCenter;
+let perimeterRadius = userConfig.perimeterRadius;
+let BASE_HUE = userConfig.BASE_HUE;
+let BASE_SAT = userConfig.BASE_SAT;
+let BASE_LIGHT = userConfig.BASE_LIGHT;
+let blacklist = userConfig.blacklist;
 
 // Ajout d'un niveau de zoom libre
 const map = L.map('map', {
     zoomDelta: 0.1,
     zoomSnap: 0
 }).setView(perimeterCenter, 18);
+// Gestion du sélecteur de config
+async function loadConfigList() {
+  try {
+    const res = await fetch('/api/configs');
+    const configs = await res.json();
+    const selector = document.getElementById('config-selector');
+    selector.innerHTML = '';
+    configs.forEach(cfg => {
+      const opt = document.createElement('option');
+      opt.value = cfg;
+      opt.textContent = cfg.replace(/\.json$/, '');
+      selector.appendChild(opt);
+    });
+    return configs;
+  } catch (e) {
+    console.error('Erreur lors du chargement des configs:', e);
+    return [];
+  }
+}
+
+async function loadConfigFile(filename) {
+  try {
+    const res = await fetch(`/config/${filename}`);
+    const data = await res.json();
+    if (data.ETAGES) ETAGES = data.ETAGES;
+    if (data.perimeterCenter) perimeterCenter = data.perimeterCenter;
+    if (data.perimeterRadius) perimeterRadius = data.perimeterRadius;
+    if (typeof data.BASE_HUE !== 'undefined') BASE_HUE = data.BASE_HUE;
+    if (typeof data.BASE_SAT !== 'undefined') BASE_SAT = data.BASE_SAT;
+    if (typeof data.BASE_LIGHT !== 'undefined') BASE_LIGHT = data.BASE_LIGHT;
+    if (Array.isArray(data.blacklist)) blacklist = data.blacklist;
+    return data;
+  } catch (e) {
+    console.error('Erreur lors du chargement du fichier de config:', e);
+  }
+}
+
+async function setupConfigSelector() {
+  const configs = await loadConfigList();
+  const selector = document.getElementById('config-selector');
+  if (!configs.length) {
+    selector.innerHTML = '<option>Aucune config</option>';
+    selector.disabled = true;
+    return;
+  }
+  selector.disabled = false;
+  // Charger la première config par défaut
+  await loadConfigFile(configs[0]);
+  selector.value = configs[0];
+  selector.addEventListener('change', async (e) => {
+    await loadConfigFile(e.target.value);
+    window.location.reload(); // Recharge la page pour appliquer la config proprement
+  });
+}
+
+// Initialiser le sélecteur de config au chargement
+setupConfigSelector();
 // URLs MapTiler vectoriel pour le fond universel
 const UNIVERSAL_BASE_URLS = {
     light: 'https://api.maptiler.com/maps/3b544fc3-420c-4a93-a594-a99b71d941bb/style.json?key=BiyHHi8FTQZ233ADqskZ',
@@ -52,6 +118,7 @@ const { batimentLayers, batimentFeatures, cheminFeatures, layerControl: mapLayer
     perimeterRadius,
     getRouteAndPoints
 });
+// Les modules qui utilisent BASE_HUE, BASE_SAT, BASE_LIGHT, blacklist doivent être adaptés pour prendre les valeurs dynamiques si besoin.
 
 // Stockage des couches et features par étage
 
