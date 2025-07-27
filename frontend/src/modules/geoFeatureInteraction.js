@@ -3,7 +3,7 @@ import { departIcon, arriveeIcon } from './icons.js';
 import { createLabel } from './labelManager.js';
 import { createButtonsWithLabel, forceShowButtons, hideButtons } from './buttonManager.js';
 import { getBaseColorByIndex } from './colors.js';
-import { BASE_HUE, BASE_SAT, BASE_LIGHT, blacklist } from './userConfig.js';
+// Les paramètres dynamiques sont passés depuis main.js
 // Liste noire des noms de features pour lesquels la popup ne doit pas s'afficher
 
 /**
@@ -40,7 +40,7 @@ function createPopupContent(name) {
 const LABEL_MIN_ZOOM = 20;  // Niveau de zoom minimum pour afficher les labels
 const LABEL_MAX_ZOOM = 23;  // Niveau de zoom maximum pour afficher les labels
 
-export function addFeatureClickHandler(feature, layer, map, { etageIdx, batimentFeatures, cheminFeatures, batimentLayers, ETAGES, getRouteAndPoints }) {
+export function addFeatureClickHandler(feature, layer, map, { etageIdx, batimentFeatures, cheminFeatures, batimentLayers, ETAGES, getRouteAndPoints, BASE_HUE, BASE_SAT, BASE_LIGHT, blacklist }) {
     // Ajoute le label et les boutons si la feature a un nom
     if (feature.properties && feature.properties.name && !blacklist.includes(feature.properties.name.toLowerCase())) {
         createButtonsWithLabel(
@@ -146,7 +146,7 @@ export function addFeatureClickHandler(feature, layer, map, { etageIdx, batiment
         // On sauvegarde le style d'origine
         const originalStyle = { ...layer.options };
         // Couleur de base
-        const baseColor = getBaseColorByIndex(etageIdx, ETAGES.length);
+        const baseColor = getBaseColorByIndex(etageIdx, ETAGES.length, BASE_HUE, BASE_SAT, BASE_LIGHT);
         // Hover: vert "horrible"
         const hoverColor = 'hsl(120, 100%, 45%)'; // Vert vif
         // Click: +30% saturation (garde le style précédent)

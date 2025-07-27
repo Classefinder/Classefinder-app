@@ -9,7 +9,7 @@ import { addFeatureClickHandler } from './geoFeatureInteraction.js';
 // }
 
 // Ajoute une classe CSS dynamique à chaque calque selon l'étage
-export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, cheminFeatures, layerControl, map, onAllLoaded, getRouteAndPoints }) {
+export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, cheminFeatures, layerControl, map, onAllLoaded, getRouteAndPoints, BASE_HUE, BASE_SAT, BASE_LIGHT, blacklist }) {
     let loadedCount = 0;
     ETAGES.forEach((etage, idx) => {
         // Calque chemin (jamais affiché, ni dans le control layer)
@@ -20,7 +20,7 @@ export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, ch
                 const cheminLayer = L.geoJSON(data, {
                     style: function () {
                         // Déclinaison bleu HSL
-                        return { color: getBaseColorByIndex(idx, ETAGES.length), weight: 3, fillColor: getBaseColorByIndex(idx, ETAGES.length) };
+                        return { color: getBaseColorByIndex(idx, ETAGES.length, BASE_HUE, BASE_SAT, BASE_LIGHT), weight: 3, fillColor: getBaseColorByIndex(idx, ETAGES.length, BASE_HUE, BASE_SAT, BASE_LIGHT) };
                     },
                     onEachFeature: (feature, layer) => {
                         features.push({ feature, layer });
@@ -31,7 +31,11 @@ export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, ch
                             cheminFeatures,
                             batimentLayers,
                             ETAGES,
-                            getRouteAndPoints
+                            getRouteAndPoints,
+                            BASE_HUE,
+                            BASE_SAT,
+                            BASE_LIGHT,
+                            blacklist
                         });
                         // Impossible d'ajouter une classe CSS directement, on utilise le style
                     }
@@ -46,7 +50,7 @@ export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, ch
                 const batLayer = L.geoJSON(data, {
                     style: function () {
                         // Déclinaison bleu HSL
-                        return { color: getBaseColorByIndex(idx, ETAGES.length), weight: 2, fillColor: getBaseColorByIndex(idx, ETAGES.length) };
+                        return { color: getBaseColorByIndex(idx, ETAGES.length, BASE_HUE, BASE_SAT, BASE_LIGHT), weight: 2, fillColor: getBaseColorByIndex(idx, ETAGES.length, BASE_HUE, BASE_SAT, BASE_LIGHT) };
                     },
                     onEachFeature: (feature, layer) => {
                         features.push({ feature, layer });
@@ -57,7 +61,11 @@ export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, ch
                             cheminFeatures,
                             batimentLayers,
                             ETAGES,
-                            getRouteAndPoints
+                            getRouteAndPoints,
+                            BASE_HUE,
+                            BASE_SAT,
+                            BASE_LIGHT,
+                            blacklist
                         });
                         // Impossible d'ajouter une classe CSS directement, on utilise le style
                     }
