@@ -3,9 +3,7 @@ import { updateRouteDisplay } from './routeDisplay.js';
 import { getRouteColorByIndex } from './colors.js';
 
 window.allRouteSegments = window.allRouteSegments || [];
-const ANT_PATH_WEIGHT = 5; // Poids des segments de la route
-
-// https://classefinder.duckdns.org/osrm/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?steps=true&geometries=geojson&overview=full
+const ANT_PATH_WEIGHT = 5;
 
 export function getRouteAndPoints({
     map,
@@ -18,7 +16,7 @@ export function getRouteAndPoints({
     ETAGES,
     batimentLayers,
     routeSegmentsByEtage,
-    osrmUrl
+    osrmUrl // Paramètre OSRM ajouté
 }) {
     // Nettoyage global
     window.allRouteSegments.forEach(seg => {
@@ -44,7 +42,10 @@ export function getRouteAndPoints({
     // Réinitialisation de l'état d'animation
     window.routeAnimationState = {};
 
+    // Utilisation de l'URL OSRM de la config
     const routeUrl = `${osrmUrl}/${start[1]},${start[0]};${end[1]},${end[0]}?steps=true&geometries=geojson&overview=full`;
+    console.log('[OSRM] URL utilisée pour la requête :', routeUrl);
+    
     fetch(routeUrl)
         .then(response => response.json())
         .then(data => {

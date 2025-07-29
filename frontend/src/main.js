@@ -19,7 +19,7 @@ const config = {
     BASE_SAT: userConfig.BASE_SAT,
     BASE_LIGHT: userConfig.BASE_LIGHT,
     blacklist: userConfig.blacklist,
-    osrmUrl: userConfig.osrmUrl
+    osrmUrl: userConfig.osrmUrl // Ajout du paramètre OSRM
 };
 
 // Ajout d'un niveau de zoom libre
@@ -131,7 +131,8 @@ const { batimentLayers, batimentFeatures, cheminFeatures, layerControl: mapLayer
     ETAGES: config.ETAGES,
     perimeterCenter: config.perimeterCenter,
     perimeterRadius: config.perimeterRadius,
-    getRouteAndPoints
+    getRouteAndPoints,
+    osrmUrl: config.osrmUrl // Passage de l'URL OSRM
 });
 
 // Flags d'initialisation
@@ -143,7 +144,7 @@ let departButtonAdded = false;
 document.addEventListener('DOMContentLoaded', () => {
     setupLocationControl({
         map,
-        config, // Passer l'objet config complet
+        config,
         onInside: (e, perimeterCircle) => {
             map.removeLayer(perimeterCircle);
             if (!geojsonLoaded) {
@@ -169,7 +170,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 batimentFeatures,
                                 cheminFeatures,
                                 ETAGES: config.ETAGES,
-                                getRouteAndPoints
+                                getRouteAndPoints,
+                                osrmUrl: config.osrmUrl // Passage aux barres de recherche
                             });
                         }
                         if (!departButtonAdded) {
@@ -202,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                                 batimentLayers,
                                                 routeSegmentsByEtage: window.routeSegmentsByEtage,
                                                 markerOptions: { className: 'end-marker' },
-                                                osrmUrl: config.osrmUrl
+                                                osrmUrl: config.osrmUrl // Passage à l'itinéraire
                                             });
                                         }
                                     }
@@ -271,7 +273,7 @@ window.currentRouteStartIdx = null;
 window.currentRouteEndIdx = null;
 window.departMarkerByEtage = [];
 window.arriveeMarkerByEtage = [];
-window.perimeterCircle = null; // Référence globale au cercle
+window.perimeterCircle = null;
 
 // Icônes personnalisés
 const departIcon = L.icon({
