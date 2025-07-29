@@ -3,7 +3,7 @@ import { loadGeojsonLayers } from './geojsonLoader.js';
 import { setupSearchBars } from './searchBar.js';
 import { addSetDepartButton, getCurrentUserPosition } from './location.js';
 
-export function setupMapFeatures({ map, ETAGES, perimeterCenter, perimeterRadius, getRouteAndPoints }) {
+export function setupMapFeatures({ map, ETAGES, perimeterCenter, perimeterRadius, getRouteAndPoints, osrmUrl }) {
     const batimentLayers = [];
     const batimentFeatures = [];
     const cheminFeatures = [];
@@ -29,7 +29,7 @@ export function setupMapFeatures({ map, ETAGES, perimeterCenter, perimeterRadius
                         batimentFeatures,
                         cheminFeatures,
                         layerControl,
-                        getRouteAndPoints,
+                        getRouteAndPoints: (params) => getRouteAndPoints({ ...params, osrmUrl }),
                         map,
                         onAllLoaded: () => {
                             if (!searchBarInitialized) {
@@ -40,7 +40,8 @@ export function setupMapFeatures({ map, ETAGES, perimeterCenter, perimeterRadius
                                     batimentFeatures,
                                     cheminFeatures,
                                     ETAGES,
-                                    getRouteAndPoints
+                                    getRouteAndPoints: (params) => getRouteAndPoints({ ...params, osrmUrl }),
+                                    osrmUrl
                                 });
                             }
                             if (!departButtonAdded) {
@@ -49,12 +50,10 @@ export function setupMapFeatures({ map, ETAGES, perimeterCenter, perimeterRadius
                                     map,
                                     getCurrentPosition: cb => getCurrentUserPosition(map, cb),
                                     setDepartMarker: (latlng) => {
-                                        // Supprime tous les anciens marqueurs de départ sur tous les étages
                                         window.departMarkerByEtage.forEach((marker, idx) => {
                                             if (marker) map.removeLayer(marker);
                                             window.departMarkerByEtage[idx] = null;
                                         });
-                                        // Place le marqueur de départ sur l'étage courant
                                         const currentIdx = batimentLayers.findIndex(l => map.hasLayer(l));
                                         if (currentIdx !== -1) {
                                             const marker = L.marker(latlng, { icon: departIcon, className: 'start-marker' }).bindPopup('Départ : Ma position');
@@ -74,6 +73,7 @@ export function setupMapFeatures({ map, ETAGES, perimeterCenter, perimeterRadius
                                                     ETAGES,
                                                     batimentLayers,
                                                     routeSegmentsByEtage: window.routeSegmentsByEtage,
+                                                    osrmUrl
                                                 });
                                             }
                                         }

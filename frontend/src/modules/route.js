@@ -3,7 +3,7 @@ import { updateRouteDisplay } from './routeDisplay.js';
 import { getRouteColorByIndex } from './colors.js';
 
 window.allRouteSegments = window.allRouteSegments || [];
-const ANT_PATH_WEIGHT = 5; // Poids des segments de la route
+const ANT_PATH_WEIGHT = 5;
 
 export function getRouteAndPoints({
     map,
@@ -15,8 +15,24 @@ export function getRouteAndPoints({
     arriveeIdx,
     ETAGES,
     batimentLayers,
-    routeSegmentsByEtage
+    routeSegmentsByEtage,
+    osrmUrl
 }) {
+    // Debug: Vérification des paramètres
+    console.log("[OSRM] Paramètres reçus:", {
+        start,
+        end,
+        osrmUrl,
+        departIdx,
+        arriveeIdx
+    });
+
+    // Vérification cruciale
+    if (!osrmUrl) {
+        console.error("ERREUR CRITIQUE: osrmUrl est undefined!");
+        return;
+    }
+
     // Nettoyage global
     window.allRouteSegments.forEach(seg => {
         if (seg && map.hasLayer(seg)) {
@@ -41,9 +57,26 @@ export function getRouteAndPoints({
     // Réinitialisation de l'état d'animation
     window.routeAnimationState = {};
 
-    var osrmUrl = `https://classefinder.duckdns.org/osrm/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?steps=true&geometries=geojson&overview=full`;
-    fetch(osrmUrl)
-        .then(response => response.json())
+    const routeUrl = `${osrmUrl}/${start[1]},${start[0]};${end[1]},${end[0]}?steps=true&geometries=geojson&overview=full`;
+    console.log("[OSRM] URL complète:", routeUrl);
+    
+    fetch(routeUrl)
+        .then(response => {
+            // Vérifier le statut HTTP
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP! statut: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(text => {
+            try {
+                // Essayer de parser le JSON
+                return JSON.parse(text);
+            } catch (e) {
+                console.error("Erreur de parsing JSON. Réponse brute:", text.substring(0, 500));
+                throw new Error("Réponse serveur invalide");
+            }
+        })
         .then(data => {
             if (data.routes && data.routes.length > 0) {
                 var route = data.routes[0];

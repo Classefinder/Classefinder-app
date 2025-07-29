@@ -11,8 +11,25 @@ app.use((req, res, next) => {
     next();
 });
 
+
 // Servir les fichiers geojson
 app.use('/geojson', express.static(path.join(__dirname, 'geojson')));
+
+// Servir les fichiers de config JSON
+const configDir = path.join(__dirname, 'config');
+app.use('/config', express.static(configDir));
+
+// Route pour lister les fichiers de config disponibles
+app.get('/api/configs', (req, res) => {
+    fs.readdir(configDir, (err, files) => {
+        if (err) {
+            return res.status(500).json({ error: 'Impossible de lister les fichiers de config' });
+        }
+        // Ne garder que les fichiers .json
+        const jsonFiles = files.filter(f => f.endsWith('.json'));
+        res.json(jsonFiles);
+    });
+});
 
 // Vérifier si le dossier frontend/dist existe
 const frontendDistPath = path.join(__dirname, '../frontend/dist');

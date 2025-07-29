@@ -1,7 +1,5 @@
 // Module de gestion de la localisation et du périmètre
-// Utilise leaflet-control-locate (doit être chargé dans index.html)
-
-export function setupLocationControl({ map, perimeterCenter, perimeterRadius, onInside, onOutside, onDenied }) {
+export function setupLocationControl({ map, config, onInside, onOutside, onDenied }) {
     // Ajoute le contrôle de localisation
     const lc = L.control.locate({
         setView: 'once',
@@ -16,19 +14,22 @@ export function setupLocationControl({ map, perimeterCenter, perimeterRadius, on
 
     // Fonction pour vérifier si la position est dans le périmètre
     function isInPerimeter(latlng) {
-        const d = map.distance(latlng, perimeterCenter);
-        return d <= perimeterRadius;
+        const d = map.distance(latlng, config.perimeterCenter);
+        return d <= config.perimeterRadius; // Utilisation directe du rayon
     }
 
-    // Affiche le cercle du périmètre
-    let perimeterCircle = L.circle(perimeterCenter, {
-        radius: perimeterRadius,
+    // Création du cercle avec les paramètres dynamiques
+    const perimeterCircle = L.circle(config.perimeterCenter, {
+        radius: config.perimeterRadius, // Paramètre crucial
         color: 'red',
         fillColor: '#f03',
         fillOpacity: 0.2
     }).addTo(map);
+    
+    // Stocker la référence globale
+    window.perimeterCircle = perimeterCircle;
 
-    // Gestion des événements du plugin
+    // Gestion des événements
     map.on('locationfound', function (e) {
         if (isInPerimeter(e.latlng)) {
             onInside(e, perimeterCircle);
@@ -46,7 +47,6 @@ export function setupLocationControl({ map, perimeterCenter, perimeterRadius, on
     return { lc, perimeterCircle };
 }
 
-// Ajoute un bouton pour placer le marqueur de départ à la position utilisateur
 export function addSetDepartButton({ map, getCurrentPosition, setDepartMarker }) {
     setTimeout(() => {
         const searchStart = document.querySelector('.search-control-start');
@@ -63,7 +63,6 @@ export function addSetDepartButton({ map, getCurrentPosition, setDepartMarker })
                     setDepartMarker(latlng);
                 });
             };
-            // Insérer le bouton juste avant le bouton de recherche
             const searchBtn = searchStart.querySelector('.search-button');
             if (searchBtn) {
                 searchStart.insertBefore(div, searchBtn);
@@ -74,7 +73,6 @@ export function addSetDepartButton({ map, getCurrentPosition, setDepartMarker })
     }, 300);
 }
 
-// Utilitaire pour obtenir la position courante via leaflet-control-locate
 export function getCurrentUserPosition(map, callback) {
     map.once('locationfound', function (e) {
         callback(e.latlng);

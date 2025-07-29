@@ -38,7 +38,7 @@ export const ETAGES = [
 
 // --- Périmètre (importé de main.js)
 export const perimeterCenter = [45.93728985010814, 6.132621267468342]; // à adapter si besoin
-export const perimeterRadius = 120000; // en mètres
+export const perimeterRadius = 1000000000000; // en mètres
 
 // --- Couleurs (importé de colors.js)
 export const BASE_HUE = 0;   // 220 = bleu, 0 = rouge, 120 = vert, etc.
@@ -47,3 +47,5 @@ export const BASE_LIGHT = 55;  // Luminosité de base (0–100)
 
 // --- Liste noire pour l'interaction avec les entités géographiques (importé de geoFeatureInteraction.js)
 export const blacklist = ["", "escalier"];
+export const osrmUrl = "https://classeinder.duckdns.org/osrm/route/v1/driving"; // URL du service OSRM mais qui est fausse
+export const initialZoom = 18; // Valeur par défaut
