@@ -19,28 +19,11 @@ let BASE_SAT = userConfig.BASE_SAT;
 let BASE_LIGHT = userConfig.BASE_LIGHT;
 let blacklist = userConfig.blacklist;
 
-let map; // Déclarer map globalement
-
-// URLs MapTiler vectoriel pour le fond universel
-const UNIVERSAL_BASE_URLS = {
-    light: 'https://api.maptiler.com/maps/3b544fc3-420c-4a93-a594-a99b71d941bb/style.json?key=BiyHHi8FTQZ233ADqskZ',
-    dark: 'https://api.maptiler.com/maps/04c03a5d-804b-4c6f-9736-b7103fdb530b/style.json?key=BiyHHi8FTQZ233ADqskZ'
-};
-
-let universalBaseLayer = null;
-
-function setUniversalBaseLayer(theme) {
-    if (universalBaseLayer) {
-        map.removeLayer(universalBaseLayer);
-    }
-    const styleUrl = theme === 'dark' ? UNIVERSAL_BASE_URLS.dark : UNIVERSAL_BASE_URLS.light;
-    universalBaseLayer = L.maplibreGL({
-        style: styleUrl,
-        attribution: '© MapTiler, OpenStreetMap contributors'
-    });
-    universalBaseLayer.addTo(map);
-}
-
+// Ajout d'un niveau de zoom libre
+const map = L.map('map', {
+    zoomDelta: 0.1,
+    zoomSnap: 0
+}).setView(perimeterCenter, 18);
 // Gestion du sélecteur de config
 async function loadConfigList() {
   try {
@@ -66,25 +49,42 @@ async function loadConfigFile(filename) {
     const res = await fetch(`/config/${filename}`);
     const data = await res.json();
     if (data.ETAGES) ETAGES = data.ETAGES;
-    if (data.perimeterCenter) perimeterCenter = data.perimeterCenter;
-    if (data.perimeterRadius) perimeterRadius = data.perimeterRadius;
+    // Correction : bien charger perimeterCenter et perimeterRadius, et mettre à jour la vue de la carte si besoin
+    let shouldUpdateView = false;
+    let shouldUpdateRadius = false;
+    if (data.perimeterCenter && Array.isArray(data.perimeterCenter) && data.perimeterCenter.length === 2) {
+      perimeterCenter = data.perimeterCenter;
+      shouldUpdateView = true;
+    }
+    if (typeof data.perimeterRadius !== 'undefined') {
+      perimeterRadius = data.perimeterRadius;
+      shouldUpdateRadius = true;
+    }
     if (typeof data.BASE_HUE !== 'undefined') BASE_HUE = data.BASE_HUE;
     if (typeof data.BASE_SAT !== 'undefined') BASE_SAT = data.BASE_SAT;
     if (typeof data.BASE_LIGHT !== 'undefined') BASE_LIGHT = data.BASE_LIGHT;
     if (Array.isArray(data.blacklist)) blacklist = data.blacklist;
+    // Si perimeterCenter ou perimeterRadius a changé, recentrer la carte et mettre à jour le cercle de périmètre si besoin
+    if ((shouldUpdateView || shouldUpdateRadius) && typeof map !== 'undefined' && map.setView) {
+      map.setView(perimeterCenter, 18);
+      // Mettre à jour le cercle de périmètre si déjà présent
+      if (window.perimeterCircle && typeof window.perimeterCircle.setLatLng === 'function' && typeof window.perimeterCircle.setRadius === 'function') {
+        window.perimeterCircle.setLatLng(perimeterCenter);
+        window.perimeterCircle.setRadius(perimeterRadius);
+      }
+    }
     return data;
   } catch (e) {
     console.error('Erreur lors du chargement du fichier de config:', e);
   }
 }
 
-async function setupConfigSelector(onConfigLoaded) {
+async function setupConfigSelector() {
   const configs = await loadConfigList();
   const selector = document.getElementById('config-selector');
   if (!configs.length) {
     selector.innerHTML = '<option>Aucune config</option>';
     selector.disabled = true;
-    onConfigLoaded();
     return;
   }
   selector.disabled = false;
@@ -100,45 +100,60 @@ async function setupConfigSelector(onConfigLoaded) {
   selector.addEventListener('change', async (e) => {
     // Mémoriser le choix et recharger la page
     localStorage.setItem('selectedConfig', e.target.value);
-    await loadConfigFile(e.target.value);
-    onConfigLoaded();
+    window.location.reload();
   });
-  onConfigLoaded();
 }
 
-// Fonction pour initialiser la carte APRES le chargement de la config
-function initMap() {
-    // Ajout d'un niveau de zoom libre
-    map = L.map('map', {
-        zoomDelta: 0.1,
-        zoomSnap: 0
-    }).setView(perimeterCenter, 18);
-    
-    // Initialiser le gestionnaire de thème
-    initThemeManager();
-    setUniversalBaseLayer(getCurrentTheme());
-    onThemeChange(setUniversalBaseLayer);
+// Initialiser le sélecteur de config au chargement
+setupConfigSelector();
+// URLs MapTiler vectoriel pour le fond universel
+const UNIVERSAL_BASE_URLS = {
+    light: 'https://api.maptiler.com/maps/3b544fc3-420c-4a93-a594-a99b71d941bb/style.json?key=BiyHHi8FTQZ233ADqskZ',
+    dark: 'https://api.maptiler.com/maps/04c03a5d-804b-4c6f-9736-b7103fdb530b/style.json?key=BiyHHi8FTQZ233ADqskZ'
+};
 
-    // Initialisation du thème
-    setupTheme(map, UNIVERSAL_BASE_URLS);
+let universalBaseLayer = null;
 
-    // Initialisation des fonctionnalités de la carte
-    const { batimentLayers, batimentFeatures, cheminFeatures, layerControl: mapLayerControl } = setupMapFeatures({
-        map,
-        ETAGES,
-        perimeterCenter,
-        perimeterRadius,
-        getRouteAndPoints
+function setUniversalBaseLayer(theme) {
+    if (universalBaseLayer) {
+        map.removeLayer(universalBaseLayer);
+    }
+    const styleUrl = theme === 'dark' ? UNIVERSAL_BASE_URLS.dark : UNIVERSAL_BASE_URLS.light;
+    universalBaseLayer = L.maplibreGL({
+        style: styleUrl,
+        attribution: '© MapTiler, OpenStreetMap contributors'
     });
+    universalBaseLayer.addTo(map);
+}
 
-    // Stockage des couches et features par étage
 
-    // Flags pour empêcher l'initialisation multiple
-    let geojsonLoaded = false;
-    let searchBarInitialized = false;
-    let departButtonAdded = false;
+// Initialisation du gestionnaire de thème
+initThemeManager();
+setUniversalBaseLayer(getCurrentTheme());
+onThemeChange(setUniversalBaseLayer);
 
-    // Logique de localisation obligatoire et chargement conditionnel
+// Initialisation du thème
+setupTheme(map, UNIVERSAL_BASE_URLS);
+
+// Initialisation des fonctionnalités de la carte
+const { batimentLayers, batimentFeatures, cheminFeatures, layerControl: mapLayerControl } = setupMapFeatures({
+    map,
+    ETAGES,
+    perimeterCenter,
+    perimeterRadius,
+    getRouteAndPoints
+});
+// Les modules qui utilisent BASE_HUE, BASE_SAT, BASE_LIGHT, blacklist doivent être adaptés pour prendre les valeurs dynamiques si besoin.
+
+// Stockage des couches et features par étage
+
+// Flags pour empêcher l'initialisation multiple
+let geojsonLoaded = false;
+let searchBarInitialized = false;
+let departButtonAdded = false;
+
+// Logique de localisation obligatoire et chargement conditionnel
+document.addEventListener('DOMContentLoaded', () => {
     setupLocationControl({
         map,
         perimeterCenter,
@@ -236,95 +251,6 @@ function initMap() {
             map.setView(perimeterCenter, 18);
         }
     });
-    
-    // Stockage global des segments d'itinéraire par étage
-    window.routeSegmentsByEtage = [];
-    window.currentRouteStart = null;
-    window.currentRouteEnd = null;
-    window.currentRouteStartIdx = null;
-    window.currentRouteEndIdx = null;
-
-    // Stockage des marqueurs par étage
-    window.departMarkerByEtage = [];
-    window.arriveeMarkerByEtage = [];
-
-    // Icônes personnalisés pour les marqueurs de départ et d'arrivée
-    const departIcon = L.icon({
-        iconUrl: "./images/start-icon.svg",
-        iconSize: [15, 15], // size of the icon
-        iconAnchor: [7.5, 7.5], // point of the icon which will correspond to marker's location
-        popupAnchor: [0, -10], // point from which the popup should open relative to the iconAnchor
-    });
-    const arriveeIcon = L.icon({
-        iconUrl: '/images/end-icon.svg',
-        iconSize: [15, 15], // size of the icon
-        iconAnchor: [7.5, 7.5], // point of the icon which will correspond to marker's location
-        popupAnchor: [0, -10], // point from which the popup should open relative
-    });
-
-    // Ajout d'une gestion dynamique du fond de carte par étage et par thème
-    let currentBaseLayer = null;
-    let currentEtageIdx = 0;
-    function setBackgroundForEtage(idx) {
-        const etage = ETAGES[idx];
-        if (!etage || !etage.backgroundUrl) return;
-        if (currentBaseLayer) {
-            map.removeLayer(currentBaseLayer);
-        }
-        const theme = getCurrentTheme() || THEMES.LIGHT;
-        const url = etage.backgroundUrl[theme] || etage.backgroundUrl.light;
-        currentBaseLayer = L.tileLayer(url, {
-            maxZoom: 23,
-            attribution: '© OpenStreetMap'
-        });
-        currentBaseLayer.addTo(map);
-        currentEtageIdx = idx;
-    }
-    // Initialisation avec le fond du premier étage
-    setBackgroundForEtage(0);
-
-    // Réagit au changement de thème pour changer le fond de carte
-    onThemeChange(() => {
-        setBackgroundForEtage(currentEtageIdx);
-    });
-
-    // Ajoute un listener sur le changement de baseLayer pour afficher les bons segments et marqueurs
-    map.on('baselayerchange', function (e) {
-        const idx = batimentLayers.findIndex(l => l === e.layer);
-        if (idx !== -1) {
-            setBackgroundForEtage(idx);
-            updateRouteDisplay(map, window.routeSegmentsByEtage, window.departMarkerByEtage, window.arriveeMarkerByEtage, idx);
-        }
-    });
-
-    // Synchronise le fond de carte personnalisé avec le layer GeoJSON d'étage affiché (utile pour la recherche)
-    map.on('layeradd', function (e) {
-        const idx = batimentLayers.findIndex(l => l === e.layer);
-        if (idx !== -1) {
-            setBackgroundForEtage(idx);
-            updateRouteDisplay(map, window.routeSegmentsByEtage, window.departMarkerByEtage, window.arriveeMarkerByEtage, idx);
-        }
-    });
-
-    // Après le chargement des layers et de la localisation
-    // Déplace le control layer dans le conteneur custom
-    setTimeout(() => {
-        const leafletLayerControl = document.querySelector('.leaflet-control-layers');
-        const customLayerControl = document.getElementById('custom-layer-control');
-        if (leafletLayerControl && customLayerControl && !customLayerControl.hasChildNodes()) {
-            customLayerControl.appendChild(leafletLayerControl);
-        }
-        // Déplace le bouton locate dans le conteneur custom
-        const leafletLocate = document.querySelector('.leaflet-control-locate');
-        const customLocateBtn = document.getElementById('custom-locate-btn');
-        if (leafletLocate && customLocateBtn && !customLocateBtn.hasChildNodes()) {
-            customLocateBtn.appendChild(leafletLocate);
-        }
-    }, 500);
-}
-
-// Initialiser le sélecteur et la carte en séquence
-document.addEventListener('DOMContentLoaded', async () => {
     // Gestion du bouton dark mode (toggle + icône dynamique)
     const darkModeBtn = document.getElementById('dark-mode-toggle');
     if (darkModeBtn) {
@@ -355,15 +281,89 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateBtnIcon();
         onThemeChange(updateBtnIcon);
     }
-    
-    // Initialiser le sélecteur de config et la carte
-    await setupConfigSelector(() => {
-        if (!map) {
-            initMap(); // Première initialisation
-        } else {
-            // Mise à jour si la config change
-            map.setView(perimeterCenter, 18);
-            // Réinitialiser les couches et autres éléments nécessaires...
-        }
-    });
 });
+
+// Stockage global des segments d'itinéraire par étage
+window.routeSegmentsByEtage = [];
+window.currentRouteStart = null;
+window.currentRouteEnd = null;
+window.currentRouteStartIdx = null;
+window.currentRouteEndIdx = null;
+
+// Stockage des marqueurs par étage
+window.departMarkerByEtage = [];
+window.arriveeMarkerByEtage = [];
+
+// Icônes personnalisés pour les marqueurs de départ et d'arrivée
+const departIcon = L.icon({
+    iconUrl: "./images/start-icon.svg",
+    iconSize: [15, 15], // size of the icon
+    iconAnchor: [7.5, 7.5], // point of the icon which will correspond to marker's location
+    popupAnchor: [0, -10], // point from which the popup should open relative to the iconAnchor
+});
+const arriveeIcon = L.icon({
+    iconUrl: '/images/end-icon.svg',
+    iconSize: [15, 15], // size of the icon
+    iconAnchor: [7.5, 7.5], // point of the icon which will correspond to marker's location
+    popupAnchor: [0, -10], // point from which the popup should open relative
+});
+
+// Ajout d'une gestion dynamique du fond de carte par étage et par thème
+let currentBaseLayer = null;
+let currentEtageIdx = 0;
+function setBackgroundForEtage(idx) {
+    const etage = ETAGES[idx];
+    if (!etage || !etage.backgroundUrl) return;
+    if (currentBaseLayer) {
+        map.removeLayer(currentBaseLayer);
+    }
+    const theme = getCurrentTheme() || THEMES.LIGHT;
+    const url = etage.backgroundUrl[theme] || etage.backgroundUrl.light;
+    currentBaseLayer = L.tileLayer(url, {
+        maxZoom: 23,
+        attribution: '© OpenStreetMap'
+    });
+    currentBaseLayer.addTo(map);
+    currentEtageIdx = idx;
+}
+// Initialisation avec le fond du premier étage
+setBackgroundForEtage(0);
+
+// Réagit au changement de thème pour changer le fond de carte
+onThemeChange(() => {
+    setBackgroundForEtage(currentEtageIdx);
+});
+
+// Ajoute un listener sur le changement de baseLayer pour afficher les bons segments et marqueurs
+map.on('baselayerchange', function (e) {
+    const idx = batimentLayers.findIndex(l => l === e.layer);
+    if (idx !== -1) {
+        setBackgroundForEtage(idx);
+        updateRouteDisplay(map, window.routeSegmentsByEtage, window.departMarkerByEtage, window.arriveeMarkerByEtage, idx);
+    }
+});
+
+// Synchronise le fond de carte personnalisé avec le layer GeoJSON d'étage affiché (utile pour la recherche)
+map.on('layeradd', function (e) {
+    const idx = batimentLayers.findIndex(l => l === e.layer);
+    if (idx !== -1) {
+        setBackgroundForEtage(idx);
+        updateRouteDisplay(map, window.routeSegmentsByEtage, window.departMarkerByEtage, window.arriveeMarkerByEtage, idx);
+    }
+});
+
+// Après le chargement des layers et de la localisation
+// Déplace le control layer dans le conteneur custom
+setTimeout(() => {
+    const leafletLayerControl = document.querySelector('.leaflet-control-layers');
+    const customLayerControl = document.getElementById('custom-layer-control');
+    if (leafletLayerControl && customLayerControl && !customLayerControl.hasChildNodes()) {
+        customLayerControl.appendChild(leafletLayerControl);
+    }
+    // Déplace le bouton locate dans le conteneur custom
+    const leafletLocate = document.querySelector('.leaflet-control-locate');
+    const customLocateBtn = document.getElementById('custom-locate-btn');
+    if (leafletLocate && customLocateBtn && !customLocateBtn.hasChildNodes()) {
+        customLocateBtn.appendChild(leafletLocate);
+    }
+}, 500);
