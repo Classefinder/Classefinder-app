@@ -32,7 +32,7 @@
     }
   ],
   "perimeterCenter": [46.01507172853286, 6.136007551935456],
-  "perimeterRadius": 5,
+  "perimeterRadius": 15000000,
   "BASE_HUE": 50,
   "BASE_SAT": 70,
   "BASE_LIGHT": 55,
