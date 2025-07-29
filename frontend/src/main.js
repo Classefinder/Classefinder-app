@@ -26,7 +26,7 @@ const config = {
 const map = L.map('map', {
     zoomDelta: 0.1,
     zoomSnap: 0
-}).setView(config.perimeterCenter, 18);
+}).setView(config.perimeterCenter, config.initialZoom || 18); // Utilisation du zoom configurable
 
 // Gestion du sélecteur de config
 async function loadConfigList() {
@@ -58,7 +58,7 @@ async function loadConfigFile(filename) {
         
         // Mise à jour de la carte
         if (map && map.setView) {
-            map.setView(config.perimeterCenter, 18);
+            map.setView(config.perimeterCenter, config.initialZoom || 18); // Utilisation du zoom configurable
             
             // Mettre à jour le cercle de périmètre si existant
             if (window.perimeterCircle) {
@@ -225,12 +225,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         },
-        onOutside: (e, perimeterCircle) => {
-            map.setView(config.perimeterCenter, 18);
-        },
-        onDenied: (e, perimeterCircle) => {
-            map.setView(config.perimeterCenter, 18);
-        }
+    onOutside: (e, perimeterCircle) => {
+        map.setView(config.perimeterCenter, config.initialZoom || 18); // Utilisation du zoom configurable
+    },
+    onDenied: (e, perimeterCircle) => {
+        map.setView(config.perimeterCenter, config.initialZoom || 18); // Utilisation du zoom configurable
+    }
     });
 
     // Gestion du bouton dark mode

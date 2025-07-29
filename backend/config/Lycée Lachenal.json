@@ -37,5 +37,6 @@
   "BASE_SAT": 70,
   "BASE_LIGHT": 55,
   "blacklist": [""],
-  "osrmUrl": "https://classefinder.duckdns.org/osrm/route/v1/driving"
+  "osrmUrl": "https://classefinder.duckdns.org/osrm/route/v1/driving",
+  "initialZoom": 18
 }
