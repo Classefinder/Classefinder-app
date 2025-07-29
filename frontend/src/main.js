@@ -19,7 +19,7 @@ const config = {
     BASE_SAT: userConfig.BASE_SAT,
     BASE_LIGHT: userConfig.BASE_LIGHT,
     blacklist: userConfig.blacklist,
-    osrmUrl: userConfig.osrmUrl // Ajout du paramètre OSRM
+    osrmUrl: userConfig.osrmUrl
 };
 
 // Ajout d'un niveau de zoom libre
@@ -131,8 +131,8 @@ const { batimentLayers, batimentFeatures, cheminFeatures, layerControl: mapLayer
     ETAGES: config.ETAGES,
     perimeterCenter: config.perimeterCenter,
     perimeterRadius: config.perimeterRadius,
-    getRouteAndPoints,
-    osrmUrl: config.osrmUrl // Passage de l'URL OSRM
+    getRouteAndPoints: (params) => getRouteAndPoints({ ...params, osrmUrl: config.osrmUrl }),
+    osrmUrl: config.osrmUrl
 });
 
 // Flags d'initialisation
@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     batimentFeatures,
                     cheminFeatures,
                     layerControl: mapLayerControl,
-                    getRouteAndPoints,
+                    getRouteAndPoints: (params) => getRouteAndPoints({ ...params, osrmUrl: config.osrmUrl }),
                     map,
                     BASE_HUE: config.BASE_HUE,
                     BASE_SAT: config.BASE_SAT,
@@ -170,8 +170,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 batimentFeatures,
                                 cheminFeatures,
                                 ETAGES: config.ETAGES,
-                                getRouteAndPoints,
-                                osrmUrl: config.osrmUrl // Passage aux barres de recherche
+                                getRouteAndPoints: (params) => getRouteAndPoints({ ...params, osrmUrl: config.osrmUrl }),
+                                osrmUrl: config.osrmUrl
                             });
                         }
                         if (!departButtonAdded) {
@@ -203,8 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                                 ETAGES: config.ETAGES,
                                                 batimentLayers,
                                                 routeSegmentsByEtage: window.routeSegmentsByEtage,
-                                                markerOptions: { className: 'end-marker' },
-                                                osrmUrl: config.osrmUrl // Passage à l'itinéraire
+                                                osrmUrl: config.osrmUrl
                                             });
                                         }
                                     }

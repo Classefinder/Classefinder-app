@@ -7,7 +7,8 @@ export function setupSearchBars({
     batimentFeatures,
     cheminFeatures,
     ETAGES,
-    getRouteAndPoints
+    getRouteAndPoints,
+    osrmUrl
 }) {
     let depart = null;
     let departEtageIdx = null;
@@ -83,7 +84,7 @@ export function setupSearchBars({
 
                     const marker = L.marker(markerCoords, { icon: departIcon }).bindPopup('Départ : ' + feature.properties.name);
                     window.departMarkerByEtage[etageIdx] = marker;
-                    marker.addTo(map).openPopup(); // Toujours ajouter le marqueur
+                    marker.addTo(map).openPopup();
 
                     window.currentRouteStart = markerCoords;
                     window.currentRouteStartIdx = etageIdx;
@@ -99,7 +100,8 @@ export function setupSearchBars({
                             arriveeIdx: window.currentRouteEndIdx,
                             ETAGES,
                             batimentLayers,
-                            routeSegmentsByEtage: window.routeSegmentsByEtage
+                            routeSegmentsByEtage: window.routeSegmentsByEtage,
+                            osrmUrl
                         });
                     }
                 }
@@ -174,7 +176,7 @@ export function setupSearchBars({
                 if (markerCoords) {
                     const marker = L.marker(markerCoords, { icon: arriveeIcon }).bindPopup('Arrivée : ' + e.layer.feature.properties.name);
                     window.arriveeMarkerByEtage[etageIdx] = marker;
-                    marker.addTo(map).openPopup(); // Toujours ajouter le marqueur
+                    marker.addTo(map).openPopup();
 
                     window.currentRouteEnd = markerCoords;
                     window.currentRouteEndIdx = etageIdx;
@@ -190,7 +192,8 @@ export function setupSearchBars({
                             arriveeIdx: window.currentRouteEndIdx,
                             ETAGES,
                             batimentLayers,
-                            routeSegmentsByEtage: window.routeSegmentsByEtage
+                            routeSegmentsByEtage: window.routeSegmentsByEtage,
+                            osrmUrl
                         });
                     }
                 }
