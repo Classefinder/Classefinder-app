@@ -5,6 +5,8 @@ import { getRouteColorByIndex } from './colors.js';
 window.allRouteSegments = window.allRouteSegments || [];
 const ANT_PATH_WEIGHT = 5; // Poids des segments de la route
 
+// https://classefinder.duckdns.org/osrm/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?steps=true&geometries=geojson&overview=full
+
 export function getRouteAndPoints({
     map,
     start,
@@ -15,7 +17,8 @@ export function getRouteAndPoints({
     arriveeIdx,
     ETAGES,
     batimentLayers,
-    routeSegmentsByEtage
+    routeSegmentsByEtage,
+    osrmUrl
 }) {
     // Nettoyage global
     window.allRouteSegments.forEach(seg => {
@@ -41,8 +44,8 @@ export function getRouteAndPoints({
     // Réinitialisation de l'état d'animation
     window.routeAnimationState = {};
 
-    var osrmUrl = `https://classefinder.duckdns.org/osrm/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?steps=true&geometries=geojson&overview=full`;
-    fetch(osrmUrl)
+    const routeUrl = `${osrmUrl}/${start[1]},${start[0]};${end[1]},${end[0]}?steps=true&geometries=geojson&overview=full`;
+    fetch(routeUrl)
         .then(response => response.json())
         .then(data => {
             if (data.routes && data.routes.length > 0) {

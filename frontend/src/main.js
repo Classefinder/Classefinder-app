@@ -18,7 +18,8 @@ const config = {
     BASE_HUE: userConfig.BASE_HUE,
     BASE_SAT: userConfig.BASE_SAT,
     BASE_LIGHT: userConfig.BASE_LIGHT,
-    blacklist: userConfig.blacklist
+    blacklist: userConfig.blacklist,
+    osrmUrl: userConfig.osrmUrl
 };
 
 // Ajout d'un niveau de zoom libre
@@ -200,7 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                                 ETAGES: config.ETAGES,
                                                 batimentLayers,
                                                 routeSegmentsByEtage: window.routeSegmentsByEtage,
-                                                markerOptions: { className: 'end-marker' }
+                                                markerOptions: { className: 'end-marker' },
+                                                osrmUrl: config.osrmUrl
                                             });
                                         }
                                     }
