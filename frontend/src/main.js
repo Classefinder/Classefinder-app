@@ -64,13 +64,106 @@ async function loadConfigFile(filename) {
     if (typeof data.BASE_SAT !== 'undefined') BASE_SAT = data.BASE_SAT;
     if (typeof data.BASE_LIGHT !== 'undefined') BASE_LIGHT = data.BASE_LIGHT;
     if (Array.isArray(data.blacklist)) blacklist = data.blacklist;
-    // Si perimeterCenter ou perimeterRadius a changé, recentrer la carte et mettre à jour le cercle de périmètre si besoin
+    // Si perimeterCenter ou perimeterRadius a changé, recentrer la carte et réinitialiser le contrôle de localisation
     if ((shouldUpdateView || shouldUpdateRadius) && typeof map !== 'undefined' && map.setView) {
       map.setView(perimeterCenter, 18);
-      // Mettre à jour le cercle de périmètre si déjà présent
-      if (window.perimeterCircle && typeof window.perimeterCircle.setLatLng === 'function' && typeof window.perimeterCircle.setRadius === 'function') {
-        window.perimeterCircle.setLatLng(perimeterCenter);
-        window.perimeterCircle.setRadius(perimeterRadius);
+      // Supprimer l'ancien cercle de périmètre si présent
+      if (window.perimeterCircle && map.hasLayer(window.perimeterCircle)) {
+        map.removeLayer(window.perimeterCircle);
+        window.perimeterCircle = null;
+      }
+      // Réinitialiser le contrôle de localisation pour prendre en compte les nouveaux paramètres
+      if (typeof setupLocationControl === 'function') {
+        setupLocationControl({
+          map,
+          perimeterCenter,
+          perimeterRadius,
+          onInside: (e, perimeterCircle) => {
+            map.removeLayer(perimeterCircle);
+            if (!geojsonLoaded) {
+              geojsonLoaded = true;
+              loadGeojsonLayers({
+                ETAGES,
+                batimentLayers,
+                batimentFeatures,
+                cheminFeatures,
+                layerControl: mapLayerControl,
+                getRouteAndPoints,
+                map,
+                BASE_HUE,
+                BASE_SAT,
+                BASE_LIGHT,
+                blacklist,
+                onAllLoaded: () => {
+                  if (!searchBarInitialized) {
+                    searchBarInitialized = true;
+                    setupSearchBars({
+                      map,
+                      batimentLayers,
+                      batimentFeatures,
+                      cheminFeatures,
+                      ETAGES,
+                      getRouteAndPoints
+                    });
+                  }
+                  if (!departButtonAdded) {
+                    departButtonAdded = true;
+                    addSetDepartButton({
+                      map,
+                      getCurrentPosition: cb => getCurrentUserPosition(map, cb),
+                      setDepartMarker: (latlng) => {
+                        window.departMarkerByEtage.forEach((marker, idx) => {
+                          if (marker) map.removeLayer(marker);
+                          window.departMarkerByEtage[idx] = null;
+                        });
+                        const currentIdx = batimentLayers.findIndex(l => map.hasLayer(l));
+                        if (currentIdx !== -1) {
+                          const marker = L.marker(latlng, { icon: departIcon, className: 'start-marker' }).bindPopup('Départ : Ma position');
+                          window.departMarkerByEtage[currentIdx] = marker;
+                          marker.addTo(map).openPopup();
+                          window.currentRouteStart = [latlng.lat, latlng.lng];
+                          window.currentRouteStartIdx = currentIdx;
+                          if (window.currentRouteStart && window.currentRouteEnd) {
+                            getRouteAndPoints({
+                              map,
+                              start: window.currentRouteStart,
+                              end: window.currentRouteEnd,
+                              markers: [marker, window.arriveeMarkerByEtage[window.currentRouteEndIdx]],
+                              layersEtages: batimentLayers,
+                              departIdx: window.currentRouteStartIdx,
+                              arriveeIdx: window.currentRouteEndIdx,
+                              ETAGES,
+                              batimentLayers,
+                              routeSegmentsByEtage: window.routeSegmentsByEtage,
+                              markerOptions: { className: 'end-marker' }
+                            });
+                          }
+                        }
+                      }
+                    });
+                  }
+                  batimentLayers.forEach((layer, idx) => {
+                    if (idx === 0) {
+                      if (!map.hasLayer(layer)) map.addLayer(layer);
+                    } else {
+                      if (map.hasLayer(layer)) map.removeLayer(layer);
+                    }
+                  });
+                  const firstVisibleIdx = batimentLayers.findIndex(layer => map.hasLayer(layer));
+                  if (firstVisibleIdx !== -1) {
+                    setBackgroundForEtage(firstVisibleIdx);
+                  }
+                }
+              });
+            }
+          },
+          onOutside: (e, perimeterCircle) => {
+            map.setView(perimeterCenter, 18);
+          },
+          onDenied: (e, perimeterCircle) => {
+            map.setView(perimeterCenter, 18);
+          }
+        });
       }
     }
     return data;

@@ -38,7 +38,7 @@ export const ETAGES = [
 
 // --- Périmètre (importé de main.js)
 export const perimeterCenter = [45.93728985010814, 6.132621267468342]; // à adapter si besoin
-export const perimeterRadius = 120000; // en mètres
+export const perimeterRadius = 1000000000000; // en mètres
 
 // --- Couleurs (importé de colors.js)
 export const BASE_HUE = 0;   // 220 = bleu, 0 = rouge, 120 = vert, etc.
