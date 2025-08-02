@@ -41,12 +41,17 @@ export function setupSearchBars({
     // Couleur de surlignage (doit être cohérente avec geoFeatureInteraction.js)
     const hoverColor = 'hsl(120, 100%, 45%)'; // Vert vif
     let lastHighlightedLayers = [];
+    let lastOriginalStyles = new Map();
 
     searchCtrlDepart.on('search:locationfound', function (e) {
         // Reset highlight précédent
         if (lastHighlightedLayers.length) {
-            lastHighlightedLayers.forEach(l => l.setStyle({ color: '', fillColor: '' }));
+            lastHighlightedLayers.forEach(l => {
+                const orig = lastOriginalStyles.get(l);
+                if (orig) l.setStyle(orig);
+            });
             lastHighlightedLayers = [];
+            lastOriginalStyles.clear();
         }
         // Recherche sur l'étage actif
         const toHighlight = [];
@@ -88,6 +93,17 @@ export function setupSearchBars({
         if (highlightFeatures.length > 0) {
             highlightFeatures.forEach(({ layer }) => {
                 if (layer && layer.setStyle) {
+                    // Stocke le style d'origine
+                    if (!lastOriginalStyles.has(layer)) {
+                        const orig = {
+                            color: layer.options.color,
+                            fillColor: layer.options.fillColor,
+                            weight: layer.options.weight,
+                            opacity: layer.options.opacity,
+                            fillOpacity: layer.options.fillOpacity
+                        };
+                        lastOriginalStyles.set(layer, orig);
+                    }
                     layer.setStyle({ color: hoverColor, fillColor: hoverColor });
                     toHighlight.push(layer);
                 }
@@ -113,8 +129,12 @@ export function setupSearchBars({
         // Optionnel : retirer le highlight après 2 secondes
         if (lastHighlightedLayers.length) {
             setTimeout(() => {
-                lastHighlightedLayers.forEach(l => l.setStyle({ color: '', fillColor: '' }));
+                lastHighlightedLayers.forEach(l => {
+                    const orig = lastOriginalStyles.get(l);
+                    if (orig) l.setStyle(orig);
+                });
                 lastHighlightedLayers = [];
+                lastOriginalStyles.clear();
             }, 2000);
         }
     });
@@ -144,8 +164,12 @@ export function setupSearchBars({
     searchCtrlArrivee.on('search:locationfound', function (e) {
         // Reset highlight précédent
         if (lastHighlightedLayers.length) {
-            lastHighlightedLayers.forEach(l => l.setStyle({ color: '', fillColor: '' }));
+            lastHighlightedLayers.forEach(l => {
+                const orig = lastOriginalStyles.get(l);
+                if (orig) l.setStyle(orig);
+            });
             lastHighlightedLayers = [];
+            lastOriginalStyles.clear();
         }
         // Recherche sur l'étage actif
         const toHighlight = [];
@@ -187,6 +211,17 @@ export function setupSearchBars({
         if (highlightFeatures.length > 0) {
             highlightFeatures.forEach(({ layer }) => {
                 if (layer && layer.setStyle) {
+                    // Stocke le style d'origine
+                    if (!lastOriginalStyles.has(layer)) {
+                        const orig = {
+                            color: layer.options.color,
+                            fillColor: layer.options.fillColor,
+                            weight: layer.options.weight,
+                            opacity: layer.options.opacity,
+                            fillOpacity: layer.options.fillOpacity
+                        };
+                        lastOriginalStyles.set(layer, orig);
+                    }
                     layer.setStyle({ color: hoverColor, fillColor: hoverColor });
                     toHighlight.push(layer);
                 }
@@ -212,8 +247,12 @@ export function setupSearchBars({
         // Optionnel : retirer le highlight après 2 secondes
         if (lastHighlightedLayers.length) {
             setTimeout(() => {
-                lastHighlightedLayers.forEach(l => l.setStyle({ color: '', fillColor: '' }));
+                lastHighlightedLayers.forEach(l => {
+                    const orig = lastOriginalStyles.get(l);
+                    if (orig) l.setStyle(orig);
+                });
                 lastHighlightedLayers = [];
+                lastOriginalStyles.clear();
             }, 2000);
         }
     });
