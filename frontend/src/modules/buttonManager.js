@@ -12,23 +12,25 @@
  * @param {Function} onSelectEnd Callback quand on sélectionne le point d'arrivée
  * @returns {L.Marker} Le marker contenant le label et les boutons
  */
-export function createButtonsWithLabel(feature, layer, map, LABEL_MIN_ZOOM, LABEL_MAX_ZOOM, onSelectStart, onSelectEnd) {
-    // Créer le HTML pour le label et les boutons
-    const html = `
-        <div class="geojson-label-container">
-            <div class="label-text">${feature.properties.name}</div>
-            <div class="label-buttons">
-                <button type="button" class="start-button" data-feature-id="${feature.properties.id}">
-                    <img src="/images/start-icon.svg" alt="Départ" width="16" height="16">
-                    <span>Départ</span>
-                </button>
-                <button type="button" class="end-button" data-feature-id="${feature.properties.id}">
-                    <img src="/images/end-icon.svg" alt="Arrivée" width="16" height="16">
-                    <span>Arrivée</span>
-                </button>
-            </div>
-        </div>
-    `;
+export function createButtonsWithLabel(feature, layer, map, LABEL_MIN_ZOOM, LABEL_MAX_ZOOM, onSelectStart, onSelectEnd, blacklist) {
+    const isBlacklisted = blacklist && blacklist.includes(feature.properties.name.toLowerCase());
+
+    // Créer le HTML pour le label, avec ou sans boutons
+    let html = `<div class="geojson-label-container">
+        <div class="label-text">${feature.properties.name}</div>`;
+    if (!isBlacklisted) {
+        html += `<div class="label-buttons">
+            <button type="button" class="start-button" data-feature-id="${feature.properties.id}">
+                <img src="/images/start-icon.svg" alt="Départ" width="16" height="16">
+                <span>Départ</span>
+            </button>
+            <button type="button" class="end-button" data-feature-id="${feature.properties.id}">
+                <img src="/images/end-icon.svg" alt="Arrivée" width="16" height="16">
+                <span>Arrivée</span>
+            </button>
+        </div>`;
+    }
+    html += `</div>`;
 
     // Créer l'icône personnalisée
     const icon = L.divIcon({
@@ -172,6 +174,29 @@ export function createButtonsWithLabel(feature, layer, map, LABEL_MIN_ZOOM, LABE
             endBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 onSelectEnd(feature, layer, map);
+            });
+        }
+
+        // Ajoute le comportement : cliquer sur le texte du label déclenche le click sur la forme geojson
+        const labelText = container.querySelector('.label-text');
+        if (labelText) {
+            labelText.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Déclenche le click sur la couche geojson (layer)
+                if (layer && typeof layer.fire === 'function') {
+                    layer.fire('click', { originalEvent: e });
+                }
+            });
+            // Ajoute aussi un effet visuel de hover sur le label
+            labelText.addEventListener('mouseenter', () => {
+                if (layer && typeof layer.fire === 'function') {
+                    layer.fire('mouseover');
+                }
+            });
+            labelText.addEventListener('mouseleave', () => {
+                if (layer && typeof layer.fire === 'function') {
+                    layer.fire('mouseout');
+                }
             });
         }
     });

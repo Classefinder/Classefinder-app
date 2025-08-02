@@ -36,7 +36,7 @@
   "BASE_HUE": 0,
   "BASE_SAT": 70,
   "BASE_LIGHT": 55,
-  "blacklist": ["", "escalier"],
+  "blacklist": ["", "escalier", "sanitaires", "toilettes", "ascenseur", "sanitaire", "106", "cdi", "v1"],
   "osrmUrl": "https://classefinder.duckdns.org/osrm/route/v1/driving",
   "initialZoom": 18
 }
