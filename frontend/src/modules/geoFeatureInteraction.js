@@ -144,12 +144,17 @@ export function addFeatureClickHandler(feature, layer, map, { etageIdx, batiment
     // On ne fait l'effet que si la feature a un nom (même si elle est dans la blacklist utilisateur)
     if (feature.properties && feature.properties.name && feature.properties.name.trim() !== "") {
         // On sauvegarde le style d'origine
-        const originalStyle = { ...layer.options };
+        const originalStyle = {
+            color: layer.options.color,
+            fillColor: layer.options.fillColor,
+            opacity: layer.options.opacity,
+            fillOpacity: layer.options.fillOpacity
+        };
         // Couleur de base
         const baseColor = getBaseColorByIndex(etageIdx, ETAGES.length, BASE_HUE, BASE_SAT, BASE_LIGHT);
-        // Hover: vert "horrible"
-        const hoverColor = 'hsl(120, 100%, 45%)'; // Vert vif
-        // Click: +30% saturation (garde le style précédent)
+        // Hover : même teinte, saturation 100%, luminosité 95% (accent très fort)
+        const hoverColor = `hsl(${BASE_HUE}, 80%, 80%)`;
+        // Click: +30% saturation (garde la luminosité de base)
         const activeSat = Math.min(BASE_SAT + 30, 100);
         const activeColor = `hsl(${BASE_HUE}, ${activeSat}%, ${BASE_LIGHT}%)`;
 
@@ -159,23 +164,43 @@ export function addFeatureClickHandler(feature, layer, map, { etageIdx, batiment
         // Hover effect
         layer.on('mouseover', function () {
             if (!isSelected) {
-                layer.setStyle({ color: hoverColor, fillColor: hoverColor });
+                layer.setStyle({
+                    color: hoverColor,
+                    fillColor: hoverColor,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                });
             }
         });
         layer.on('mouseout', function () {
             if (!isSelected) {
-                layer.setStyle({ color: baseColor, fillColor: baseColor });
+                layer.setStyle({
+                    color: baseColor,
+                    fillColor: baseColor,
+                    opacity: originalStyle.opacity,
+                    fillOpacity: originalStyle.fillOpacity
+                });
             }
         });
 
         // Click effect (sélection)
         layer.on('click', function () {
             isSelected = true;
-            layer.setStyle({ color: activeColor, fillColor: activeColor });
+            layer.setStyle({
+                color: activeColor,
+                fillColor: activeColor,
+                opacity: 1,
+                fillOpacity: 1
+            });
             // On désélectionne après un court délai (ou à la fermeture du popup)
             setTimeout(() => {
                 isSelected = false;
-                layer.setStyle({ color: baseColor, fillColor: baseColor });
+                layer.setStyle({
+                    color: baseColor,
+                    fillColor: baseColor,
+                    opacity: originalStyle.opacity,
+                    fillOpacity: originalStyle.fillOpacity
+                });
             }, 800);
         });
     }
