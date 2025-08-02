@@ -183,7 +183,8 @@ export function addFeatureClickHandler(feature, layer, map, { etageIdx, batiment
     // Gestion du forçage d'affichage des boutons au clic
     layer.on('click', function (e) {
         L.DomEvent.stopPropagation(e);
-        if (feature.properties && blacklist.includes(feature.properties.name.toLowerCase())) {
+        // On ignore seulement les features sans nom
+        if (!(feature.properties && feature.properties.name && feature.properties.name.trim() !== "")) {
             return;
         }
         // On recentre/zoome sur la salle comme avant
