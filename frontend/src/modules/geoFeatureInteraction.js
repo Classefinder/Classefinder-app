@@ -41,8 +41,8 @@ const LABEL_MIN_ZOOM = 20;  // Niveau de zoom minimum pour afficher les labels
 const LABEL_MAX_ZOOM = 23;  // Niveau de zoom maximum pour afficher les labels
 
 export function addFeatureClickHandler(feature, layer, map, { etageIdx, batimentFeatures, cheminFeatures, batimentLayers, ETAGES, getRouteAndPoints, BASE_HUE, BASE_SAT, BASE_LIGHT, blacklist }) {
-    // Ajoute le label et les boutons si la feature a un nom
-    if (feature.properties && feature.properties.name && !blacklist.includes(feature.properties.name.toLowerCase())) {
+    // Affiche toujours le label stylé (avec ou sans boutons)
+    if (feature.properties && feature.properties.name && feature.properties.name.trim() !== "") {
         createButtonsWithLabel(
             feature,
             layer,
@@ -136,10 +136,10 @@ export function addFeatureClickHandler(feature, layer, map, { etageIdx, batiment
                         }
                     }
                 }
-            }
+            },
+            blacklist
         );
     }
-
     // Gestion du style dynamique (hover/click)
     // On ne fait l'effet que si la feature a un nom et n'est pas blacklistée
     if (feature.properties && feature.properties.name && !blacklist.includes(feature.properties.name.toLowerCase())) {
