@@ -38,75 +38,84 @@ export function setupSearchBars({
         }
     }, 100);
 
+    // Couleur de surlignage (doit être cohérente avec geoFeatureInteraction.js)
+    const hoverColor = 'hsl(120, 100%, 45%)'; // Vert vif
+    let lastHighlightedLayers = [];
+
     searchCtrlDepart.on('search:locationfound', function (e) {
-        const matchingFeatures = [];
-        batimentFeatures.forEach((features, idx) => {
-            features.forEach(obj => {
-                if (obj.feature.properties.name === e.layer.feature.properties.name) {
-                    matchingFeatures.push({ feature: obj.feature, etageIdx: idx });
-                }
-            });
+        // Reset highlight précédent
+        if (lastHighlightedLayers.length) {
+            lastHighlightedLayers.forEach(l => l.setStyle({ color: '', fillColor: '' }));
+            lastHighlightedLayers = [];
+        }
+        // Recherche sur l'étage actif
+        const toHighlight = [];
+        const highlightFeatures = [];
+        let activeEtageIdx = null;
+        batimentLayers.forEach((layer, idx) => {
+            if (map.hasLayer(layer)) activeEtageIdx = idx;
         });
-
-        if (matchingFeatures.length > 1) {
-            const bounds = L.latLngBounds();
-            matchingFeatures.forEach(({ feature, etageIdx }) => {
-                const layerBounds = batimentLayers[etageIdx].getBounds();
-                bounds.extend(layerBounds);
-            });
-            map.fitBounds(bounds, { padding: [30, 30], maxZoom: 20 });
-        } else if (matchingFeatures.length === 1) {
-            const { feature, etageIdx } = matchingFeatures[0];
-            const cheminObj = cheminFeatures[etageIdx] && cheminFeatures[etageIdx].find(obj => obj.feature.properties.name === feature.properties.name);
-
-            if (cheminObj) {
-                // Activer le bon calque avant tout traitement
-                if (!map.hasLayer(batimentLayers[etageIdx])) {
-                    batimentLayers.forEach(l => map.removeLayer(l));
-                    batimentLayers[etageIdx].addTo(map);
-                }
-
-                if (window.departMarker) map.removeLayer(window.departMarker);
-                let markerCoords;
-
-                if (cheminObj.feature.geometry.type === 'LineString') {
-                    const coords = cheminObj.feature.geometry.coordinates;
-                    markerCoords = getLineCenter(coords);
-                } else if (cheminObj.feature.geometry.type === 'Point') {
-                    markerCoords = cheminObj.feature.geometry.coordinates.slice().reverse();
-                }
-
-                if (markerCoords) {
-                    window.departMarkerByEtage.forEach((marker, idx) => {
-                        if (marker) map.removeLayer(marker);
-                        window.departMarkerByEtage[idx] = null;
-                    });
-
-                    const marker = L.marker(markerCoords, { icon: departIcon }).bindPopup('Départ : ' + feature.properties.name);
-                    window.departMarkerByEtage[etageIdx] = marker;
-                    marker.addTo(map).openPopup();
-
-                    window.currentRouteStart = markerCoords;
-                    window.currentRouteStartIdx = etageIdx;
-
-                    if (window.currentRouteStart && window.currentRouteEnd) {
-                        getRouteAndPoints({
-                            map,
-                            start: window.currentRouteStart,
-                            end: window.currentRouteEnd,
-                            markers: [marker, window.arriveeMarkerByEtage[window.currentRouteEndIdx]],
-                            layersEtages: batimentLayers,
-                            departIdx: window.currentRouteStartIdx,
-                            arriveeIdx: window.currentRouteEndIdx,
-                            ETAGES,
-                            batimentLayers,
-                            routeSegmentsByEtage: window.routeSegmentsByEtage,
-                            osrmUrl
-                        });
+        batimentFeatures.forEach((features, idx) => {
+            if (idx === activeEtageIdx) {
+                features.forEach(obj => {
+                    if (obj.feature.properties.name === e.layer.feature.properties.name) {
+                        highlightFeatures.push({ feature: obj.feature, etageIdx: idx, layer: obj.layer });
                     }
+                });
+            }
+        });
+        // Si rien sur l'étage actif, cherche sur les autres étages
+        if (highlightFeatures.length === 0) {
+            batimentFeatures.forEach((features, idx) => {
+                if (idx !== activeEtageIdx) {
+                    features.forEach(obj => {
+                        if (obj.feature.properties.name === e.layer.feature.properties.name) {
+                            highlightFeatures.push({ feature: obj.feature, etageIdx: idx, layer: obj.layer });
+                        }
+                    });
+                }
+            });
+            // Si trouvé ailleurs, bascule sur le bon calque
+            if (highlightFeatures.length > 0) {
+                const etageCible = highlightFeatures[0].etageIdx;
+                if (!map.hasLayer(batimentLayers[etageCible])) {
+                    batimentLayers.forEach(l => map.removeLayer(l));
+                    batimentLayers[etageCible].addTo(map);
                 }
             }
-            map.fitBounds(e.layer.getBounds());
+        }
+        // Highlight et zoom sur les résultats trouvés (après éventuel changement de calque)
+        if (highlightFeatures.length > 0) {
+            highlightFeatures.forEach(({ layer }) => {
+                if (layer && layer.setStyle) {
+                    layer.setStyle({ color: hoverColor, fillColor: hoverColor });
+                    toHighlight.push(layer);
+                }
+            });
+            lastHighlightedLayers = toHighlight;
+        }
+        if (highlightFeatures.length > 1) {
+            const bounds = L.latLngBounds();
+            highlightFeatures.forEach(({ layer }) => {
+                if (layer && layer.getBounds) {
+                    bounds.extend(layer.getBounds());
+                }
+            });
+            if (bounds.isValid()) {
+                map.fitBounds(bounds, { padding: [30, 30], maxZoom: 20 });
+            }
+        } else if (highlightFeatures.length === 1) {
+            const { layer } = highlightFeatures[0];
+            if (layer && layer.getBounds) {
+                map.fitBounds(layer.getBounds());
+            }
+        }
+        // Optionnel : retirer le highlight après 2 secondes
+        if (lastHighlightedLayers.length) {
+            setTimeout(() => {
+                lastHighlightedLayers.forEach(l => l.setStyle({ color: '', fillColor: '' }));
+                lastHighlightedLayers = [];
+            }, 2000);
         }
     });
 
@@ -133,72 +142,79 @@ export function setupSearchBars({
     }, 100);
 
     searchCtrlArrivee.on('search:locationfound', function (e) {
-        const matchingFeatures = [];
-        batimentFeatures.forEach((features, idx) => {
-            features.forEach(obj => {
-                if (obj.feature.properties.name === e.layer.feature.properties.name) {
-                    matchingFeatures.push({ feature: obj.feature, etageIdx: idx });
-                }
-            });
+        // Reset highlight précédent
+        if (lastHighlightedLayers.length) {
+            lastHighlightedLayers.forEach(l => l.setStyle({ color: '', fillColor: '' }));
+            lastHighlightedLayers = [];
+        }
+        // Recherche sur l'étage actif
+        const toHighlight = [];
+        const highlightFeatures = [];
+        let activeEtageIdx = null;
+        batimentLayers.forEach((layer, idx) => {
+            if (map.hasLayer(layer)) activeEtageIdx = idx;
         });
-
-        if (matchingFeatures.length > 1) {
-            const bounds = L.latLngBounds();
-            matchingFeatures.forEach(({ feature, etageIdx }) => {
-                const layerBounds = batimentLayers[etageIdx].getBounds();
-                bounds.extend(layerBounds);
-            });
-            map.fitBounds(bounds, { padding: [30, 30], maxZoom: 20 });
-        } else if (matchingFeatures.length === 1) {
-            const { feature, etageIdx } = matchingFeatures[0];
-            const cheminObj = cheminFeatures[etageIdx] && cheminFeatures[etageIdx].find(obj => obj.feature.properties.name === feature.properties.name);
-
-            if (cheminObj) {
-                // Activer le bon calque avant tout traitement
-                if (!map.hasLayer(batimentLayers[etageIdx])) {
-                    batimentLayers.forEach(l => map.removeLayer(l));
-                    batimentLayers[etageIdx].addTo(map);
-                }
-
-                window.arriveeMarkerByEtage.forEach((marker, idx) => {
-                    if (marker) map.removeLayer(marker);
-                    window.arriveeMarkerByEtage[idx] = null;
-                });
-
-                let markerCoords;
-                if (cheminObj.feature.geometry.type === 'LineString') {
-                    const coords = cheminObj.feature.geometry.coordinates;
-                    markerCoords = getLineCenter(coords);
-                } else if (cheminObj.feature.geometry.type === 'Point') {
-                    markerCoords = cheminObj.feature.geometry.coordinates.slice().reverse();
-                }
-
-                if (markerCoords) {
-                    const marker = L.marker(markerCoords, { icon: arriveeIcon }).bindPopup('Arrivée : ' + e.layer.feature.properties.name);
-                    window.arriveeMarkerByEtage[etageIdx] = marker;
-                    marker.addTo(map).openPopup();
-
-                    window.currentRouteEnd = markerCoords;
-                    window.currentRouteEndIdx = etageIdx;
-
-                    if (window.currentRouteStart && window.currentRouteEnd) {
-                        getRouteAndPoints({
-                            map,
-                            start: window.currentRouteStart,
-                            end: window.currentRouteEnd,
-                            markers: [window.departMarkerByEtage[window.currentRouteStartIdx], marker],
-                            layersEtages: batimentLayers,
-                            departIdx: window.currentRouteStartIdx,
-                            arriveeIdx: window.currentRouteEndIdx,
-                            ETAGES,
-                            batimentLayers,
-                            routeSegmentsByEtage: window.routeSegmentsByEtage,
-                            osrmUrl
-                        });
+        batimentFeatures.forEach((features, idx) => {
+            if (idx === activeEtageIdx) {
+                features.forEach(obj => {
+                    if (obj.feature.properties.name === e.layer.feature.properties.name) {
+                        highlightFeatures.push({ feature: obj.feature, etageIdx: idx, layer: obj.layer });
                     }
+                });
+            }
+        });
+        // Si rien sur l'étage actif, cherche sur les autres étages
+        if (highlightFeatures.length === 0) {
+            batimentFeatures.forEach((features, idx) => {
+                if (idx !== activeEtageIdx) {
+                    features.forEach(obj => {
+                        if (obj.feature.properties.name === e.layer.feature.properties.name) {
+                            highlightFeatures.push({ feature: obj.feature, etageIdx: idx, layer: obj.layer });
+                        }
+                    });
+                }
+            });
+            // Si trouvé ailleurs, bascule sur le bon calque
+            if (highlightFeatures.length > 0) {
+                const etageCible = highlightFeatures[0].etageIdx;
+                if (!map.hasLayer(batimentLayers[etageCible])) {
+                    batimentLayers.forEach(l => map.removeLayer(l));
+                    batimentLayers[etageCible].addTo(map);
                 }
             }
-            map.fitBounds(e.layer.getBounds());
+        }
+        // Highlight et zoom sur les résultats trouvés (après éventuel changement de calque)
+        if (highlightFeatures.length > 0) {
+            highlightFeatures.forEach(({ layer }) => {
+                if (layer && layer.setStyle) {
+                    layer.setStyle({ color: hoverColor, fillColor: hoverColor });
+                    toHighlight.push(layer);
+                }
+            });
+            lastHighlightedLayers = toHighlight;
+        }
+        if (highlightFeatures.length > 1) {
+            const bounds = L.latLngBounds();
+            highlightFeatures.forEach(({ layer }) => {
+                if (layer && layer.getBounds) {
+                    bounds.extend(layer.getBounds());
+                }
+            });
+            if (bounds.isValid()) {
+                map.fitBounds(bounds, { padding: [30, 30], maxZoom: 20 });
+            }
+        } else if (highlightFeatures.length === 1) {
+            const { layer } = highlightFeatures[0];
+            if (layer && layer.getBounds) {
+                map.fitBounds(layer.getBounds());
+            }
+        }
+        // Optionnel : retirer le highlight après 2 secondes
+        if (lastHighlightedLayers.length) {
+            setTimeout(() => {
+                lastHighlightedLayers.forEach(l => l.setStyle({ color: '', fillColor: '' }));
+                lastHighlightedLayers = [];
+            }, 2000);
         }
     });
 }
