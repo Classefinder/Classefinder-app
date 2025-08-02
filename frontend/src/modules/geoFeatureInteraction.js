@@ -141,8 +141,8 @@ export function addFeatureClickHandler(feature, layer, map, { etageIdx, batiment
         );
     }
     // Gestion du style dynamique (hover/click)
-    // On ne fait l'effet que si la feature a un nom et n'est pas blacklistée
-    if (feature.properties && feature.properties.name && !blacklist.includes(feature.properties.name.toLowerCase())) {
+    // On ne fait l'effet que si la feature a un nom (même si elle est dans la blacklist utilisateur)
+    if (feature.properties && feature.properties.name && feature.properties.name.trim() !== "") {
         // On sauvegarde le style d'origine
         const originalStyle = { ...layer.options };
         // Couleur de base
