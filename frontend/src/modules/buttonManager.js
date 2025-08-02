@@ -176,6 +176,29 @@ export function createButtonsWithLabel(feature, layer, map, LABEL_MIN_ZOOM, LABE
                 onSelectEnd(feature, layer, map);
             });
         }
+
+        // Ajoute le comportement : cliquer sur le texte du label déclenche le click sur la forme geojson
+        const labelText = container.querySelector('.label-text');
+        if (labelText) {
+            labelText.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Déclenche le click sur la couche geojson (layer)
+                if (layer && typeof layer.fire === 'function') {
+                    layer.fire('click', { originalEvent: e });
+                }
+            });
+            // Ajoute aussi un effet visuel de hover sur le label
+            labelText.addEventListener('mouseenter', () => {
+                if (layer && typeof layer.fire === 'function') {
+                    layer.fire('mouseover');
+                }
+            });
+            labelText.addEventListener('mouseleave', () => {
+                if (layer && typeof layer.fire === 'function') {
+                    layer.fire('mouseout');
+                }
+            });
+        }
     });
 
     // Faire la première mise à jour de visibilité
