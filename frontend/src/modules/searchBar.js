@@ -44,6 +44,8 @@ export function setupSearchBars({
     let lastOriginalStyles = new Map();
 
     searchCtrlDepart.on('search:locationfound', function (e) {
+        console.time('search:locationfound:start');
+        console.log('[search] search:locationfound start for', e.layer && e.layer.feature && e.layer.feature.properties && e.layer.feature.properties.name);
         // Reset highlight précédent
         if (lastHighlightedLayers.length) {
             lastHighlightedLayers.forEach(l => {
@@ -189,6 +191,8 @@ export function setupSearchBars({
             // avoid breaking search flow if marker placement fails
             console.warn('Failed to place depart marker from search:', err);
         }
+        console.timeEnd('search:locationfound:start');
+        console.log('[search] search:locationfound end');
     });
 
     // Search control for arrivee
@@ -214,6 +218,8 @@ export function setupSearchBars({
     }, 100);
 
     searchCtrlArrivee.on('search:locationfound', function (e) {
+        console.time('search:locationfound:end');
+        console.log('[search] arrival search:locationfound start for', e.layer && e.layer.feature && e.layer.feature.properties && e.layer.feature.properties.name);
         // Reset highlight précédent
         if (lastHighlightedLayers.length) {
             lastHighlightedLayers.forEach(l => {
@@ -355,5 +361,7 @@ export function setupSearchBars({
         } catch (err) {
             console.warn('Failed to place arrivee marker from search:', err);
         }
+        console.timeEnd('search:locationfound:end');
+        console.log('[search] arrival search:locationfound end');
     });
 }

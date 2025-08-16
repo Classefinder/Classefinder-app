@@ -12,6 +12,11 @@ import { addFeatureClickHandler } from './geoFeatureInteraction.js';
 export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, cheminFeatures, layerControl, map, onAllLoaded, getRouteAndPoints, BASE_HUE, BASE_SAT, BASE_LIGHT, blacklist }) {
     let loadedCount = 0;
     ETAGES.forEach((etage, idx) => {
+        // Trace temporelle par étage
+        const timerName = `geojson:etage:${etage.code}`;
+        console.time(timerName);
+        console.log(`[geojson] Start loading etage ${etage.code} (idx=${idx})`);
+
         // Calque chemin (jamais affiché, ni dans le control layer)
         fetch(etage.cheminUrl)
             .then(res => res.json())
@@ -41,7 +46,12 @@ export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, ch
                     }
                 });
                 cheminFeatures[idx] = features;
+                console.timeLog(timerName, `[geojson] chemin for etage ${etage.code} fetched and parsed`);
+            })
+            .catch(e => {
+                console.error(`[geojson] Failed to load chemin for etage ${etage.code}:`, e);
             });
+
         // Calque batiment (affiché dans le control layer)
         fetch(etage.batimentUrl)
             .then(res => res.json())
@@ -73,6 +83,8 @@ export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, ch
                 batimentLayers[idx] = batLayer;
                 batimentFeatures[idx] = features;
 
+                console.timeLog(timerName, `[geojson] batiment for etage ${etage.code} fetched and parsed`);
+
                 // On attend que tous les calques soient chargés avant de les ajouter au contrôle
                 loadedCount++;
                 if (loadedCount === ETAGES.length) {
@@ -91,10 +103,20 @@ export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, ch
                         }
                     });
 
+                    // Fin des timers par étage
+                    ETAGES.forEach(e => {
+                        const tn = `geojson:etage:${e.code}`;
+                        try { console.timeEnd(tn); } catch (err) { }
+                    });
+
                     if (typeof onAllLoaded === 'function') {
+                        console.log('[geojson] All ETAGES processed, calling onAllLoaded');
                         onAllLoaded();
                     }
                 }
+            })
+            .catch(e => {
+                console.error(`[geojson] Failed to load batiment for etage ${etage.code}:`, e);
             });
     });
 }

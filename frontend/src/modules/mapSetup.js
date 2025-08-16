@@ -18,6 +18,8 @@ export function setupMapFeatures({ map, ETAGES, perimeterCenter, perimeterRadius
     // Charge les geojson une seule fois et initialise searchbars / depart button
     function loadOnceWithParams(params) {
         if (geojsonLoaded) return;
+        console.time('mapSetup:loadOnceWithParams');
+        console.log('[mapSetup] loadOnceWithParams start');
         geojsonLoaded = true;
         // Ensure global arrays exist to avoid undefined errors elsewhere
         if (!window.departMarkerByEtage || !Array.isArray(window.departMarkerByEtage)) window.departMarkerByEtage = [];
@@ -37,6 +39,8 @@ export function setupMapFeatures({ map, ETAGES, perimeterCenter, perimeterRadius
             blacklist: params.blacklist,
             osrmUrl: params.osrmUrl || osrmUrl,
             onAllLoaded: () => {
+                console.timeEnd('mapSetup:loadOnceWithParams');
+                console.log('[mapSetup] loadOnceWithParams -> onAllLoaded');
                 if (!searchBarInitialized) {
                     searchBarInitialized = true;
                     setupSearchBars({

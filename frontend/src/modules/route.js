@@ -59,9 +59,12 @@ export function getRouteAndPoints({
 
     const routeUrl = `${osrmUrl}/${start[1]},${start[0]};${end[1]},${end[0]}?steps=true&geometries=geojson&overview=full`;
     console.log("[OSRM] URL complète:", routeUrl);
-    
+    console.time('osrm:fetch');
+    console.log('[OSRM] Fetch start');
+
     fetch(routeUrl)
         .then(response => {
+            console.timeLog('osrm:fetch', '[OSRM] Response received');
             // Vérifier le statut HTTP
             if (!response.ok) {
                 throw new Error(`Erreur HTTP! statut: ${response.status}`);
@@ -69,6 +72,7 @@ export function getRouteAndPoints({
             return response.text();
         })
         .then(text => {
+            console.timeLog('osrm:fetch', '[OSRM] Response text acquired, starting parse');
             try {
                 // Essayer de parser le JSON
                 return JSON.parse(text);
@@ -78,6 +82,8 @@ export function getRouteAndPoints({
             }
         })
         .then(data => {
+            console.timeEnd('osrm:fetch');
+            console.log('[OSRM] Fetch+parse complete');
             if (data.routes && data.routes.length > 0) {
                 var route = data.routes[0];
                 let sequences = [];
@@ -251,6 +257,8 @@ export function getRouteAndPoints({
             }
         })
         .catch(error => {
+            console.error('[OSRM] Error during route fetch/parse:', error);
+            try { console.timeEnd('osrm:fetch'); } catch (e) { }
             console.error('Erreur lors de la récupération de l\'itinéraire:', error);
         });
 }

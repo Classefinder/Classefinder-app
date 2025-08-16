@@ -43,6 +43,8 @@ const LABEL_MAX_ZOOM = 23;  // Niveau de zoom maximum pour afficher les labels
 export function addFeatureClickHandler(feature, layer, map, { etageIdx, batimentFeatures, cheminFeatures, batimentLayers, ETAGES, getRouteAndPoints, BASE_HUE, BASE_SAT, BASE_LIGHT, blacklist }) {
     // Affiche toujours le label stylé (avec ou sans boutons)
     if (feature.properties && feature.properties.name && feature.properties.name.trim() !== "") {
+        console.log('[geoFeatureInteraction] createButtonsWithLabel for', feature.properties.name, 'etage', etageIdx);
+        console.time(`geoFeatureInteraction:label:${feature.properties.id || feature.properties.name}`);
         createButtonsWithLabel(
             feature,
             layer,
@@ -139,6 +141,7 @@ export function addFeatureClickHandler(feature, layer, map, { etageIdx, batiment
             },
             blacklist
         );
+        try { console.timeEnd(`geoFeatureInteraction:label:${feature.properties.id || feature.properties.name}`); } catch (e) { }
     }
     // Gestion du style dynamique (hover/click)
     // On ne fait l'effet que si la feature a un nom (même si elle est dans la blacklist utilisateur)
@@ -207,6 +210,7 @@ export function addFeatureClickHandler(feature, layer, map, { etageIdx, batiment
 
     // Gestion du forçage d'affichage des boutons au clic
     layer.on('click', function (e) {
+        console.log('[geoFeatureInteraction] feature clicked:', feature.properties && feature.properties.name, 'etage', etageIdx);
         L.DomEvent.stopPropagation(e);
         // On ignore seulement les features sans nom
         if (!(feature.properties && feature.properties.name && feature.properties.name.trim() !== "")) {

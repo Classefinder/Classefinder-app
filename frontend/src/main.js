@@ -10,6 +10,34 @@ import { setupMapFeatures } from './modules/mapSetup.js';
 
 import * as userConfig from './modules/userConfig.js';
 
+// Performance tracing for init
+// Setup perf-start and console wrapper to add elapsed time + ISO timestamp to logs
+const __perfStart = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+const __perfStartIso = new Date().toISOString();
+const __origConsole = {
+    log: console.log.bind(console),
+    info: console.info.bind(console),
+    warn: console.warn.bind(console),
+    error: console.error.bind(console),
+    timeLog: console.timeLog ? console.timeLog.bind(console) : null
+};
+function __formatPrefix() {
+    const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    const delta = Math.round(now - __perfStart);
+    const iso = new Date().toISOString();
+    return `[+${delta}ms][${iso}]`;
+}
+console.log = function (...args) { __origConsole.log(__formatPrefix(), ...args); };
+console.info = function (...args) { __origConsole.info(__formatPrefix(), ...args); };
+console.warn = function (...args) { __origConsole.warn(__formatPrefix(), ...args); };
+console.error = function (...args) { __origConsole.error(__formatPrefix(), ...args); };
+if (__origConsole.timeLog) {
+    console.timeLog = function (label, ...args) { __origConsole.timeLog(label, __formatPrefix(), ...args); };
+}
+
+console.time('init:main');
+console.log('[INIT] Starting main initialization (perf wrapper active)', { perfStart: __perfStartIso });
+
 // Shared config (initial values come from userConfig)
 const config = {
     ETAGES: userConfig.ETAGES,
@@ -24,6 +52,7 @@ const config = {
 };
 
 const map = L.map('map', { zoomDelta: 0.1, zoomSnap: 0 }).setView(config.perimeterCenter, config.initialZoom);
+console.timeLog('init:main', '[INIT] Map created and view set', { center: config.perimeterCenter, zoom: config.initialZoom });
 
 // Theme / base
 const UNIVERSAL_BASE_URLS = {
@@ -42,6 +71,7 @@ initThemeManager();
 setUniversalBaseLayer(getCurrentTheme());
 onThemeChange(setUniversalBaseLayer);
 setupTheme(map, UNIVERSAL_BASE_URLS);
+console.timeLog('init:main', '[INIT] Theme manager and base layers initialized');
 
 // Map features (expose reload/loadOnce but don't auto run heavy loads)
 const {
@@ -65,6 +95,7 @@ const {
         try { setBackgroundForEtage(firstVisibleIdx); } catch (e) { }
     }
 });
+console.timeLog('init:main', '[INIT] setupMapFeatures returned (map features setup initiated)');
 
 // globals
 window.routeSegmentsByEtage = [];
@@ -119,6 +150,8 @@ window._cf_pendingReloadConfig = null;
 
 async function loadConfigFile(filename) {
     try {
+        console.time(`loadConfigFile:${filename}`);
+        console.log(`[CONFIG] Start loading config file: ${filename}`);
         const res = await fetch(`/config/${filename}`);
         const data = await res.json();
         Object.assign(config, data);
@@ -151,6 +184,8 @@ async function loadConfigFile(filename) {
             }
         }
 
+        console.timeEnd(`loadConfigFile:${filename}`);
+        console.log(`[CONFIG] Loaded config file: ${filename}`);
         return data;
     } catch (e) {
         console.error('Erreur lors du chargement du fichier de config:', e);
@@ -159,6 +194,8 @@ async function loadConfigFile(filename) {
 
 async function loadConfigList() {
     try {
+        console.time('loadConfigList');
+        console.log('[CONFIG] Start loading config list');
         const res = await fetch('/api/configs');
         const configs = await res.json();
         const selector = document.getElementById('config-selector');
@@ -169,6 +206,8 @@ async function loadConfigList() {
             opt.textContent = cfg.replace(/\.json$/, '');
             selector.appendChild(opt);
         });
+        console.timeEnd('loadConfigList');
+        console.log('[CONFIG] Config list loaded', configs);
         return configs;
     } catch (e) {
         console.error('Erreur lors du chargement des configs:', e);
@@ -177,6 +216,8 @@ async function loadConfigList() {
 }
 
 async function setupConfigSelector() {
+    console.time('setupConfigSelector');
+    console.log('[CONFIG] setupConfigSelector start');
     const configs = await loadConfigList();
     const selector = document.getElementById('config-selector');
     if (!configs.length) {
@@ -197,6 +238,8 @@ async function setupConfigSelector() {
         localStorage.setItem('selectedConfig', e.target.value);
         window.location.reload();
     });
+    console.timeEnd('setupConfigSelector');
+    console.log('[CONFIG] setupConfigSelector end');
 }
 
 setupConfigSelector();
@@ -228,6 +271,8 @@ function onLocationDenied() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.time('DOMContentLoaded');
+    console.log('[INIT] DOMContentLoaded handler start');
     // Create locate control but DO NOT auto-center when location is found (allowAutoCenter:false)
     // then immediately start locate to force the browser permission prompt without changing the view.
     const locCtrl = setupLocationControl({
@@ -274,6 +319,8 @@ document.addEventListener('DOMContentLoaded', () => {
         updateBtnIcon();
         onThemeChange(updateBtnIcon);
     }
+    console.timeEnd('DOMContentLoaded');
+    console.log('[INIT] DOMContentLoaded handler end');
 });
 
 // small UI reorg
@@ -285,3 +332,5 @@ setTimeout(() => {
     const customLocateBtn = document.getElementById('custom-locate-btn');
     if (leafletLocate && customLocateBtn) customLocateBtn.appendChild(leafletLocate);
 }, 500);
+
+console.timeLog('init:main', '[INIT] End of initial script sync path (async loads may still run)');
