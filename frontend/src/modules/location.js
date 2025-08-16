@@ -18,6 +18,8 @@ export function setupLocationControl({ map, config, perimeterCenter, perimeterRa
                 enableHighAccuracy: true
             }
         }).addTo(map);
+        // Defensive: ensure the control isn't already running on some browsers/plugins
+        try { window._cf_locateControl.stop(); } catch (e) { /* ignore */ }
     }
 
     const lc = window._cf_locateControl;
@@ -98,18 +100,22 @@ export function setupLocationControl({ map, config, perimeterCenter, perimeterRa
         window._cf_userMoveListenersAdded = true;
     }
 
-    // Start locate (if not already running)
-    try {
-        // Starting locate: clear the user-moved flag so an explicit locate session can recentre if needed.
-        window._cf_userMovedMap = false;
-        // allow one auto-center per locate start
-        window._cf_hasAutoCentered = false;
-        lc.start();
-    } catch (e) {
-        // some locate plugins may throw if started twice; ignore
+    // Do NOT start locating automatically. Some browsers (Firefox/Safari) trigger geolocation
+    // as soon as the control is created. Keep control creation idempotent and expose helpers
+    // to start/stop locate explicitly from application code.
+    function startLocate() {
+        try {
+            window._cf_userMovedMap = false;
+            window._cf_hasAutoCentered = false;
+            lc.start();
+        } catch (e) { /* ignore */ }
     }
 
-    return { lc, perimeterCircle: window.perimeterCircle };
+    function stopLocate() {
+        try { lc.stop(); } catch (e) { /* ignore */ }
+    }
+
+    return { lc, perimeterCircle: window.perimeterCircle, startLocate, stopLocate };
 }
 
 export function addSetDepartButton({ map, getCurrentPosition, setDepartMarker }) {

@@ -137,6 +137,58 @@ export function setupSearchBars({
                 lastOriginalStyles.clear();
             }, 2000);
         }
+
+        // --- Place a depart marker on the matching 'chemin' feature (same behaviour as clicking the feature) ---
+        try {
+            if (highlightFeatures.length > 0) {
+                const target = highlightFeatures[0];
+                const etageIdx = target.etageIdx;
+                const name = target.feature.properties && target.feature.properties.name;
+                if (name && cheminFeatures && Array.isArray(cheminFeatures[etageIdx])) {
+                    const cheminObj = cheminFeatures[etageIdx].find(obj => obj.feature.properties.name === name);
+                    if (cheminObj) {
+                        let markerCoords = null;
+                        if (cheminObj.feature.geometry.type === 'LineString') {
+                            markerCoords = getLineCenter(cheminObj.feature.geometry.coordinates);
+                        } else if (cheminObj.feature.geometry.type === 'Point') {
+                            markerCoords = cheminObj.feature.geometry.coordinates.slice().reverse();
+                        }
+                        if (markerCoords) {
+                            // ensure arrays exist
+                            if (!window.departMarkerByEtage) window.departMarkerByEtage = [];
+                            if (!Array.isArray(window.departMarkerByEtage)) window.departMarkerByEtage = [];
+                            // remove existing markers
+                            window.departMarkerByEtage.forEach((m, idx) => { if (m) map.removeLayer(m); window.departMarkerByEtage[idx] = null; });
+                            const marker = L.marker(markerCoords, { icon: departIcon }).bindPopup('D\u00e9part : ' + name);
+                            window.departMarkerByEtage[etageIdx] = marker;
+                            if (batimentLayers[etageIdx] && map.hasLayer(batimentLayers[etageIdx])) {
+                                marker.addTo(map).openPopup();
+                            }
+                            window.currentRouteStart = markerCoords;
+                            window.currentRouteStartIdx = etageIdx;
+                            if (window.currentRouteStart && window.currentRouteEnd && typeof getRouteAndPoints === 'function') {
+                                getRouteAndPoints({
+                                    map,
+                                    start: window.currentRouteStart,
+                                    end: window.currentRouteEnd,
+                                    markers: [marker, window.arriveeMarkerByEtage && window.arriveeMarkerByEtage[window.currentRouteEndIdx]],
+                                    layersEtages: batimentLayers,
+                                    departIdx: window.currentRouteStartIdx,
+                                    arriveeIdx: window.currentRouteEndIdx,
+                                    ETAGES,
+                                    batimentLayers,
+                                    routeSegmentsByEtage: window.routeSegmentsByEtage,
+                                    osrmUrl
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            // avoid breaking search flow if marker placement fails
+            console.warn('Failed to place depart marker from search:', err);
+        }
     });
 
     // Search control for arrivee
@@ -254,6 +306,54 @@ export function setupSearchBars({
                 lastHighlightedLayers = [];
                 lastOriginalStyles.clear();
             }, 2000);
+        }
+
+        // --- Place an arrivee marker on the matching 'chemin' feature (same behaviour as clicking the feature) ---
+        try {
+            if (highlightFeatures.length > 0) {
+                const target = highlightFeatures[0];
+                const etageIdx = target.etageIdx;
+                const name = target.feature.properties && target.feature.properties.name;
+                if (name && cheminFeatures && Array.isArray(cheminFeatures[etageIdx])) {
+                    const cheminObj = cheminFeatures[etageIdx].find(obj => obj.feature.properties.name === name);
+                    if (cheminObj) {
+                        let markerCoords = null;
+                        if (cheminObj.feature.geometry.type === 'LineString') {
+                            markerCoords = getLineCenter(cheminObj.feature.geometry.coordinates);
+                        } else if (cheminObj.feature.geometry.type === 'Point') {
+                            markerCoords = cheminObj.feature.geometry.coordinates.slice().reverse();
+                        }
+                        if (markerCoords) {
+                            if (!window.arriveeMarkerByEtage) window.arriveeMarkerByEtage = [];
+                            if (!Array.isArray(window.arriveeMarkerByEtage)) window.arriveeMarkerByEtage = [];
+                            window.arriveeMarkerByEtage.forEach((m, idx) => { if (m) map.removeLayer(m); window.arriveeMarkerByEtage[idx] = null; });
+                            const marker = L.marker(markerCoords, { icon: arriveeIcon }).bindPopup('Arriv\u00e9e : ' + name);
+                            window.arriveeMarkerByEtage[etageIdx] = marker;
+                            if (batimentLayers[etageIdx] && map.hasLayer(batimentLayers[etageIdx])) {
+                                marker.addTo(map).openPopup();
+                            }
+                            window.currentRouteEnd = markerCoords;
+                            window.currentRouteEndIdx = etageIdx;
+                            if (window.currentRouteStart && window.currentRouteEnd && typeof getRouteAndPoints === 'function') {
+                                getRouteAndPoints({
+                                    map,
+                                    start: window.currentRouteStart,
+                                    end: window.currentRouteEnd,
+                                    markers: [window.departMarkerByEtage && window.departMarkerByEtage[window.currentRouteStartIdx], marker],
+                                    layersEtages: batimentLayers,
+                                    departIdx: window.currentRouteStartIdx,
+                                    arriveeIdx: window.currentRouteEndIdx,
+                                    ETAGES,
+                                    batimentLayers,
+                                    routeSegmentsByEtage: window.routeSegmentsByEtage
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn('Failed to place arrivee marker from search:', err);
         }
     });
 }

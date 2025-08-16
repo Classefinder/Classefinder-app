@@ -2,6 +2,7 @@
 import { loadGeojsonLayers } from './geojsonLoader.js';
 import { setupSearchBars } from './searchBar.js';
 import { setupLocationControl, addSetDepartButton, getCurrentUserPosition } from './location.js';
+import { departIcon } from './icons.js';
 
 export function setupMapFeatures({ map, ETAGES, perimeterCenter, perimeterRadius, getRouteAndPoints, osrmUrl, onLayersReady }) {
     const batimentLayers = [];
@@ -18,6 +19,10 @@ export function setupMapFeatures({ map, ETAGES, perimeterCenter, perimeterRadius
     function loadOnceWithParams(params) {
         if (geojsonLoaded) return;
         geojsonLoaded = true;
+        // Ensure global arrays exist to avoid undefined errors elsewhere
+        if (!window.departMarkerByEtage || !Array.isArray(window.departMarkerByEtage)) window.departMarkerByEtage = [];
+        if (!window.arriveeMarkerByEtage || !Array.isArray(window.arriveeMarkerByEtage)) window.arriveeMarkerByEtage = [];
+        if (!window.routeSegmentsByEtage || !Array.isArray(window.routeSegmentsByEtage)) window.routeSegmentsByEtage = [];
         loadGeojsonLayers({
             ETAGES: params.ETAGES || ETAGES,
             batimentLayers,
