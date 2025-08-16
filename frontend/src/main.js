@@ -228,17 +228,23 @@ function onLocationDenied() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    setupLocationControl({
+    // Create locate control but DO NOT auto-center when location is found (allowAutoCenter:false)
+    // then immediately start locate to force the browser permission prompt without changing the view.
+    const locCtrl = setupLocationControl({
         map,
         config,
+        allowAutoCenter: false,
         onInside: (e, perimeterCircle) => {
             if (window._cf_locationPermission !== 'granted') onLocationGranted();
         },
         onOutside: (e) => {
+            // Keep view on perimeter center even if user is outside
             map.setView(config.perimeterCenter, config.initialZoom || 18);
         },
         onDenied: () => onLocationDenied()
     });
+    // If the control exposes startLocate, call it to trigger the permission dialog but not change view
+    try { if (locCtrl && typeof locCtrl.startLocate === 'function') locCtrl.startLocate(); } catch (e) { /* ignore */ }
 
     const darkModeBtn = document.getElementById('dark-mode-toggle');
     if (darkModeBtn) {

@@ -1,5 +1,5 @@
 // Module de gestion de la localisation et du périmètre
-export function setupLocationControl({ map, config, perimeterCenter, perimeterRadius, onInside, onOutside, onDenied }) {
+export function setupLocationControl({ map, config, perimeterCenter, perimeterRadius, onInside, onOutside, onDenied, allowAutoCenter = true }) {
     // Allow calling setupLocationControl multiple times without duplicating the locate control or perimeter circle.
     // Prefer config object if provided, otherwise use perimeterCenter and perimeterRadius parameters.
     const center = (config && config.perimeterCenter) || perimeterCenter;
@@ -61,13 +61,31 @@ export function setupLocationControl({ map, config, perimeterCenter, perimeterRa
         if (isInPerimeter(e.latlng)) {
             if (typeof onInside === 'function') onInside(e, window.perimeterCircle, { userMoved });
             // Only auto-center once per locate session and only if the user hasn't moved the map
-            if (!userMoved && !window._cf_hasAutoCentered) {
+            if (allowAutoCenter && !userMoved && !window._cf_hasAutoCentered) {
                 try { map.setView(e.latlng, map.getZoom()); window._cf_hasAutoCentered = true; } catch (err) { /* ignore */ }
+            }
+            // If auto-centering is disabled, ensure the view remains on the configured perimeter center
+            if (!allowAutoCenter && !userMoved) {
+                // Defer slightly to override any later setView from other listeners/plugins
+                setTimeout(() => {
+                    try {
+                        const zoom = (config && config.initialZoom) || map.getZoom();
+                        map.setView(center, zoom);
+                    } catch (err) { /* ignore */ }
+                }, 50);
             }
         } else {
             if (typeof onOutside === 'function') onOutside(e, window.perimeterCircle, { userMoved });
-            if (!userMoved && !window._cf_hasAutoCentered) {
+            if (allowAutoCenter && !userMoved && !window._cf_hasAutoCentered) {
                 try { map.setView(e.latlng, map.getZoom()); window._cf_hasAutoCentered = true; } catch (err) { /* ignore */ }
+            }
+            if (!allowAutoCenter && !userMoved) {
+                setTimeout(() => {
+                    try {
+                        const zoom = (config && config.initialZoom) || map.getZoom();
+                        map.setView(center, zoom);
+                    } catch (err) { /* ignore */ }
+                }, 50);
             }
         }
     };
