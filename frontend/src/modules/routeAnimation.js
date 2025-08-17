@@ -5,6 +5,9 @@ export function animateRoute(map, sequences, etageIdx, layersEtages, ANT_PATH_WE
     const etageSequences = sequences.filter(s => s.etageIdx === etageIdx && s.coords && s.coords.length > 1);
     if (!etageSequences.length) return;
 
+    console.log('[routeAnimation] animateRoute start for etage', etageIdx, 'sequences:', etageSequences.length);
+    console.time(`routeAnimation:etage:${etageIdx}`);
+
     if (window.routeSegmentsByEtage[etageIdx]) {
         window.routeSegmentsByEtage[etageIdx].forEach(seg => {
             if (seg && map.hasLayer(seg)) map.removeLayer(seg);
@@ -61,6 +64,8 @@ export function animateRoute(map, sequences, etageIdx, layersEtages, ANT_PATH_WE
                     finishedCount++;
                     if (finishedCount === etageSequences.length) {
                         window.routeAnimationState[etageIdx].finished = true;
+                        console.timeEnd(`routeAnimation:etage:${etageIdx}`);
+                        console.log('[routeAnimation] animateRoute finished for etage', etageIdx);
                     }
                 }
             }

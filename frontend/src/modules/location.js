@@ -1,50 +1,139 @@
 // Module de gestion de la localisation et du périmètre
-export function setupLocationControl({ map, config, onInside, onOutside, onDenied }) {
-    // Ajoute le contrôle de localisation
-    const lc = L.control.locate({
-        setView: 'once',
-        flyTo: true,
-        keepCurrentZoomLevel: true,
-        drawCircle: false,
-        showPopup: false,
-        locateOptions: {
-            enableHighAccuracy: true
-        }
-    }).addTo(map);
+export function setupLocationControl({ map, config, perimeterCenter, perimeterRadius, onInside, onOutside, onDenied, allowAutoCenter = true }) {
+    // Allow calling setupLocationControl multiple times without duplicating the locate control or perimeter circle.
+    // Prefer config object if provided, otherwise use perimeterCenter and perimeterRadius parameters.
+    const center = (config && config.perimeterCenter) || perimeterCenter;
+    const radius = (config && config.perimeterRadius) || perimeterRadius;
 
-    // Fonction pour vérifier si la position est dans le périmètre
-    function isInPerimeter(latlng) {
-        const d = map.distance(latlng, config.perimeterCenter);
-        return d <= config.perimeterRadius; // Utilisation directe du rayon
+    // If a locate control already exists on the window, reuse it.
+    if (!window._cf_locateControl) {
+        // Disable the plugin auto-centering (setView:false) so we control recenter behavior explicitly.
+        window._cf_locateControl = L.control.locate({
+            setView: false,
+            flyTo: false,
+            keepCurrentZoomLevel: true,
+            drawCircle: false,
+            showPopup: false,
+            locateOptions: {
+                enableHighAccuracy: true,
+                maximumAge: 0,  // Toujours obtenir une position fraîche
+                timeout: 10000  // Timeout après 10s
+            }
+        }).addTo(map);
+        // Defensive: ensure the control isn't already running on some browsers/plugins
+        try { window._cf_locateControl.stop(); } catch (e) { /* ignore */ }
     }
 
-    // Création du cercle avec les paramètres dynamiques
-    const perimeterCircle = L.circle(config.perimeterCenter, {
-        radius: config.perimeterRadius, // Paramètre crucial
-        color: 'red',
-        fillColor: '#f03',
-        fillOpacity: 0.2
-    }).addTo(map);
-    
-    // Stocker la référence globale
-    window.perimeterCircle = perimeterCircle;
+    const lc = window._cf_locateControl;
 
-    // Gestion des événements
-    map.on('locationfound', function (e) {
-        if (isInPerimeter(e.latlng)) {
-            onInside(e, perimeterCircle);
-        } else {
-            onOutside(e, perimeterCircle);
+    // Create or update the perimeter circle
+    if (!window.perimeterCircle) {
+        if (center && typeof radius === 'number') {
+            window.perimeterCircle = L.circle(center, {
+                radius: radius,
+                color: 'red',
+                fillColor: '#f03',
+                fillOpacity: 0.2
+            }).addTo(map);
         }
-    });
-    map.on('locationerror', function (e) {
-        onDenied(e, perimeterCircle);
-    });
+    } else {
+        // update if new center/radius provided
+        if (center) window.perimeterCircle.setLatLng(center);
+        if (typeof radius === 'number') window.perimeterCircle.setRadius(radius);
+    }
 
-    // Démarre la localisation automatiquement
-    lc.start();
+    // Helper to check if a latlng is inside the configured perimeter
+    function isInPerimeter(latlng) {
+        if (!window.perimeterCircle) return true; // if no perimeter, treat as inside
+        const d = map.distance(latlng, window.perimeterCircle.getLatLng());
+        return d <= window.perimeterCircle.getRadius();
+    }
 
-    return { lc, perimeterCircle };
+    // To avoid adding multiple identical handlers, remove previous handlers we added (if any)
+    if (window._cf_locationHandlersAdded) {
+        map.off('locationfound', window._cf_locationFoundHandler);
+        map.off('locationerror', window._cf_locationErrorHandler);
+    }
+
+    // Define handlers and store references for potential removal
+    window._cf_locationFoundHandler = function (e) {
+        // If the user manually moved the map, avoid forcing a recenter here.
+        const userMoved = !!window._cf_userMovedMap;
+
+        if (isInPerimeter(e.latlng)) {
+            if (typeof onInside === 'function') onInside(e, window.perimeterCircle, { userMoved });
+            // Only auto-center once per locate session and only if the user hasn't moved the map
+            if (allowAutoCenter && !userMoved && !window._cf_hasAutoCentered) {
+                try { map.setView(e.latlng, map.getZoom()); window._cf_hasAutoCentered = true; } catch (err) { /* ignore */ }
+            }
+            // If auto-centering is disabled, ensure the view remains on the configured perimeter center
+            if (!allowAutoCenter && !userMoved) {
+                // Defer slightly to override any later setView from other listeners/plugins
+                setTimeout(() => {
+                    try {
+                        const zoom = (config && config.initialZoom) || map.getZoom();
+                        map.setView(center, zoom);
+                    } catch (err) { /* ignore */ }
+                }, 50);
+            }
+        } else {
+            if (typeof onOutside === 'function') onOutside(e, window.perimeterCircle, { userMoved });
+            if (allowAutoCenter && !userMoved && !window._cf_hasAutoCentered) {
+                try { map.setView(e.latlng, map.getZoom()); window._cf_hasAutoCentered = true; } catch (err) { /* ignore */ }
+            }
+            if (!allowAutoCenter && !userMoved) {
+                setTimeout(() => {
+                    try {
+                        const zoom = (config && config.initialZoom) || map.getZoom();
+                        map.setView(center, zoom);
+                    } catch (err) { /* ignore */ }
+                }, 50);
+            }
+        }
+    };
+    window._cf_locationErrorHandler = function (e) {
+        if (typeof onDenied === 'function') onDenied(e, window.perimeterCircle);
+    };
+
+    map.on('locationfound', window._cf_locationFoundHandler);
+    map.on('locationerror', window._cf_locationErrorHandler);
+    window._cf_locationHandlersAdded = true;
+
+    // Track if the user manually moved the map to avoid auto-recentering after manual pans/zooms.
+    // We add these listeners only once.
+    if (!window._cf_userMoveListenersAdded) {
+        window._cf_userMovedMap = false;
+        // mark as user-moved
+        const markUserMoved = () => { window._cf_userMovedMap = true; };
+        // Leaflet events
+        map.on('movestart', markUserMoved);
+        map.on('zoomstart', markUserMoved);
+        map.on('dragstart', markUserMoved);
+        // More generic DOM interactions (some browsers may not fire the Leaflet move events in every case)
+        try {
+            const container = map.getContainer();
+            container.addEventListener('pointerdown', markUserMoved, { passive: true });
+            container.addEventListener('mousedown', markUserMoved, { passive: true });
+            container.addEventListener('touchstart', markUserMoved, { passive: true });
+            container.addEventListener('wheel', markUserMoved, { passive: true });
+        } catch (e) { /* ignore if getContainer not available */ }
+        window._cf_userMoveListenersAdded = true;
+    }
+
+    // Expose a method to start locate using the plugin
+    function startLocate() {
+        try {
+            window._cf_userMovedMap = false;
+            window._cf_hasAutoCentered = false;
+            lc.start();
+        } catch (e) { /* ignore */ }
+    }
+
+    function stopLocate() {
+        try { lc.stop(); } catch (e) { /* ignore */ }
+    }
+
+    return { lc, perimeterCircle: window.perimeterCircle, startLocate, stopLocate };
 }
 
 export function addSetDepartButton({ map, getCurrentPosition, setDepartMarker }) {
