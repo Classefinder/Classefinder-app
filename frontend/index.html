@@ -41,7 +41,10 @@
     <div id="location-loading-overlay" class="location-loading-hidden" aria-hidden="true">
       <div class="location-loading-content" role="status" aria-live="polite">
         <div class="location-loading-text">récupération de votre position</div>
-        <img src="/images/locate.svg" alt="localisation" class="location-loading-image" />
+        <div class="location-loading-visuals">
+          <div class="location-spinner" aria-hidden="true"></div>
+        </div>
+        <button class="location-timeout-continue" type="button" aria-hidden="true">Continuer sans position</button>
       </div>
     </div>
     <div id="config-selector-container">

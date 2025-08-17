@@ -295,10 +295,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Démarre immédiatement la localisation avec le plugin
     try {
-    // Affiche l'overlay pendant que le navigateur demande la permission
-    showLocationLoadingOverlay();
+        // Affiche l'overlay pendant que le navigateur demande la permission
+        showLocationLoadingOverlay();
         if (locCtrl && typeof locCtrl.startLocate === 'function') {
             locCtrl.startLocate();
+        }
+    } catch (e) { /* ignore */ }
+
+    // Attacher le bouton "Continuer sans position" si présent
+    try {
+        const overlay = document.getElementById('location-loading-overlay');
+        if (overlay) {
+            const btn = overlay.querySelector('.location-timeout-continue');
+            if (btn) {
+                // Cacher par défaut jusqu'au timeout
+                btn.style.display = 'none';
+                btn.addEventListener('click', () => {
+                    try {
+                        // User chooses to continue without position
+                        hideLocationLoadingOverlay();
+                        onLocationDenied();
+                    } catch (e) { /* ignore */ }
+                });
+            }
         }
     } catch (e) { /* ignore */ }
 
@@ -354,6 +373,8 @@ function showLocationLoadingOverlay() {
             el.classList.remove('location-loading-hidden');
             el.classList.add('location-loading-visible');
             el.setAttribute('aria-hidden', 'false');
+            resetLocationOverlayState();
+            startLocationOverlayTimeout();
         }
     } catch (e) { /* ignore */ }
 }
@@ -365,6 +386,50 @@ function hideLocationLoadingOverlay() {
             el.classList.remove('location-loading-visible');
             el.classList.add('location-loading-hidden');
             el.setAttribute('aria-hidden', 'true');
+            clearLocationOverlayTimeout();
+            resetLocationOverlayState();
         }
+    } catch (e) { /* ignore */ }
+}
+
+// Timeout pour l'overlay de localisation. Si la permission n'est pas résolue
+// après ce délai, passer en état d'erreur et proposer "Continuer sans position".
+const LOCATION_OVERLAY_TIMEOUT_MS = 7000; // 7 seconds
+let _cf_locationOverlayTimer = null;
+
+function startLocationOverlayTimeout() {
+    clearLocationOverlayTimeout();
+    _cf_locationOverlayTimer = setTimeout(() => {
+        try {
+            const el = document.getElementById('location-loading-overlay');
+            if (!el) return;
+            el.classList.add('location-loading-error');
+            const btn = el.querySelector('.location-timeout-continue');
+            if (btn) {
+                btn.setAttribute('aria-hidden', 'false');
+                btn.style.display = '';
+            }
+            const text = el.querySelector('.location-loading-text');
+            if (text) text.textContent = 'Cela prend plus de temps que prévu !';
+        } catch (e) { /* ignore */ }
+    }, LOCATION_OVERLAY_TIMEOUT_MS);
+}
+
+function clearLocationOverlayTimeout() {
+    try { if (_cf_locationOverlayTimer) { clearTimeout(_cf_locationOverlayTimer); _cf_locationOverlayTimer = null; } } catch (e) { }
+}
+
+function resetLocationOverlayState() {
+    try {
+        const el = document.getElementById('location-loading-overlay');
+        if (!el) return;
+        el.classList.remove('location-loading-error');
+        const btn = el.querySelector('.location-timeout-continue');
+        if (btn) {
+            btn.setAttribute('aria-hidden', 'true');
+            btn.style.display = 'none';
+        }
+        const text = el.querySelector('.location-loading-text');
+        if (text) text.textContent = 'récupération de votre position';
     } catch (e) { /* ignore */ }
 }

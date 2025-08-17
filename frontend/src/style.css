@@ -1,46 +1,51 @@
 /* Style pour les labels simples des salles (sans boutons) */
 .geojson-label {
-  background: rgba(255,255,255,0.85);
-  color: #222;
-  border-radius: 4px;
-  padding: 2px 8px;
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
-  border: 1px solid #ddd;
-  pointer-events: none;
-  white-space: nowrap;
+    background: rgba(255, 255, 255, 0.85);
+    color: #222;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    border: 1px solid #ddd;
+    pointer-events: none;
+    white-space: nowrap;
 }
+
 /* Sélecteur de config en bas à droite */
 #config-selector-container {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  z-index: 1100;
-  background: rgba(255,255,255,0.95);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  padding: 6px 12px;
-  display: flex;
-  align-items: center;
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 1100;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
 }
+
 #config-selector {
-  font-size: 14px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  padding: 2px 8px;
-  background: #fff;
+    font-size: 14px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    padding: 2px 8px;
+    background: #fff;
 }
+
 body.dark-mode #config-selector-container {
-  background: #222;
-  color: #fff;
-  border: 1px solid #444;
+    background: #222;
+    color: #fff;
+    border: 1px solid #444;
 }
+
 body.dark-mode #config-selector {
-  background: #222;
-  color: #fff;
-  border: 1px solid #444;
+    background: #222;
+    color: #fff;
+    border: 1px solid #444;
 }
+
 /* Masque uniquement le bouton fermé du Layer Control natif Leaflet, pas le panneau */
 .leaflet-control-layers .leaflet-control-layers-toggle {
     display: none !important;
@@ -763,9 +768,10 @@ body.dark-mode .custom-darkmode-btn:hover {
     align-items: center;
     justify-content: center;
     z-index: 2000;
-    background: rgba(0,0,0,0.35);
+    background: rgba(0, 0, 0, 0.35);
     transition: opacity 0.22s ease, visibility 0.22s ease;
-    pointer-events: none; /* évite d'interférer quand caché */
+    pointer-events: none;
+    /* évite d'interférer quand caché */
 }
 
 #location-loading-overlay.location-loading-hidden {
@@ -780,7 +786,7 @@ body.dark-mode .custom-darkmode-btn:hover {
 }
 
 .location-loading-content {
-    background: rgba(255,255,255,0.98);
+    background: rgba(255, 255, 255, 0.98);
     color: #111;
     border-radius: 12px;
     padding: 18px 20px;
@@ -788,7 +794,7 @@ body.dark-mode .custom-darkmode-btn:hover {
     flex-direction: column;
     align-items: center;
     gap: 12px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
     min-width: 220px;
 }
 
@@ -798,14 +804,65 @@ body.dark-mode .custom-darkmode-btn:hover {
     text-align: center;
 }
 
-.location-loading-image {
-    width: 56px;
-    height: 56px;
-    object-fit: contain;
-}
-
 body.dark-mode .location-loading-content {
     background: #1e1e1e;
     color: #fff;
     border: 1px solid #333;
+}
+
+/* Visuals container: spinner + image */
+.location-loading-visuals {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Simple CSS spinner */
+.location-spinner {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 5px solid rgba(0, 0, 0, 0.08);
+    border-top-color: #2c3e50;
+    animation: cf-spin 1s linear infinite;
+}
+
+@keyframes cf-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.location-timeout-continue {
+    margin-top: 8px;
+    background: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+body.dark-mode .location-spinner {
+    border-top-color: #9fb2ff;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .location-timeout-continue {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+/* Error state: change text and spinner color */
+#location-loading-overlay.location-loading-error .location-loading-text {
+    color: #ff0000;
+}
+
+#location-loading-overlay.location-loading-error .location-spinner {
+    border-top-color: #ff6b6b;
+}
+
+#location-loading-overlay.location-loading-error .location-timeout-continue {
+    border-color: rgba(255, 107, 107, 0.2);
+    color: #c90000;
 }
