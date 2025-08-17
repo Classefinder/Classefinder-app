@@ -261,6 +261,8 @@ function onLocationGranted() {
             blacklist: config.blacklist
         });
     }
+    // Masque l'overlay de récupération de position
+    hideLocationLoadingOverlay();
 }
 
 function onLocationDenied() {
@@ -268,6 +270,8 @@ function onLocationDenied() {
     // only keep base map + perimeter visible
     setupLocationControl({ map, config, perimeterCenter: config.perimeterCenter, perimeterRadius: config.perimeterRadius });
     map.setView(config.perimeterCenter, config.initialZoom || 18);
+    // Masque l'overlay même si l'utilisateur refuse
+    hideLocationLoadingOverlay();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -291,6 +295,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Démarre immédiatement la localisation avec le plugin
     try {
+    // Affiche l'overlay pendant que le navigateur demande la permission
+    showLocationLoadingOverlay();
         if (locCtrl && typeof locCtrl.startLocate === 'function') {
             locCtrl.startLocate();
         }
@@ -339,3 +345,26 @@ setTimeout(() => {
 }, 500);
 
 console.timeLog('init:main', '[INIT] End of initial script sync path (async loads may still run)');
+
+// Helpers pour afficher/masquer l'overlay de récupération de position
+function showLocationLoadingOverlay() {
+    try {
+        const el = document.getElementById('location-loading-overlay');
+        if (el) {
+            el.classList.remove('location-loading-hidden');
+            el.classList.add('location-loading-visible');
+            el.setAttribute('aria-hidden', 'false');
+        }
+    } catch (e) { /* ignore */ }
+}
+
+function hideLocationLoadingOverlay() {
+    try {
+        const el = document.getElementById('location-loading-overlay');
+        if (el) {
+            el.classList.remove('location-loading-visible');
+            el.classList.add('location-loading-hidden');
+            el.setAttribute('aria-hidden', 'true');
+        }
+    } catch (e) { /* ignore */ }
+}

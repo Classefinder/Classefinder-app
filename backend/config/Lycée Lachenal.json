@@ -31,12 +31,17 @@
       }
     }
   ],
-  "perimeterCenter": [45.93728985010814, 5.132621267468342],
-  "perimeterRadius": 10,
+  "perimeterCenter": [
+    45.93728985010814,
+    5.132621267468342
+  ],
+  "perimeterRadius": 1000000000000,
   "BASE_HUE": 100,
   "BASE_SAT": 70,
   "BASE_LIGHT": 55,
-  "blacklist": [""],
+  "blacklist": [
+    ""
+  ],
   "osrmUrl": "https://classefinder.duckdns.org/osrm/route/v1/driving",
   "initialZoom": 18
 }

@@ -37,6 +37,13 @@
   </head>
   <body>
     <div id="map"></div>
+    <!-- Overlay affiché pendant la récupération de la position -->
+    <div id="location-loading-overlay" class="location-loading-hidden" aria-hidden="true">
+      <div class="location-loading-content" role="status" aria-live="polite">
+        <div class="location-loading-text">récupération de votre position</div>
+        <img src="/images/locate.svg" alt="localisation" class="location-loading-image" />
+      </div>
+    </div>
     <div id="config-selector-container">
       <select id="config-selector"></select>
     </div>
