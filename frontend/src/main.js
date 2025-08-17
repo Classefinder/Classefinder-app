@@ -51,6 +51,49 @@ const config = {
     initialZoom: userConfig.initialZoom || 18
 };
 
+// Helpers for persisting the selected config across browser sessions.
+// Use localStorage when available, fallback to cookies when it's not.
+const SAVED_CONFIG_KEY = 'selectedConfig';
+function setCookie(name, value, days) {
+    try {
+        const expires = typeof days === 'number' ? `; expires=${new Date(Date.now() + days * 864e5).toUTCString()}` : '';
+        document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value || '')}${expires}; path=/`;
+    } catch (e) { /* ignore */ }
+}
+function getCookie(name) {
+    try {
+        const matches = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()\[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
+        return matches ? decodeURIComponent(matches[1]) : null;
+    } catch (e) { return null; }
+}
+function readSavedConfig() {
+    try {
+        if (typeof localStorage !== 'undefined') {
+            const v = localStorage.getItem(SAVED_CONFIG_KEY);
+            if (v) return v;
+        }
+    } catch (e) { /* localStorage unavailable */ }
+    // fallback to cookie
+    return getCookie(SAVED_CONFIG_KEY);
+}
+function writeSavedConfig(value) {
+    try {
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(SAVED_CONFIG_KEY, value);
+            return;
+        }
+    } catch (e) { /* can't use localStorage */ }
+    // fallback: store for 30 days
+    setCookie(SAVED_CONFIG_KEY, value, 30);
+}
+function removeSavedConfig() {
+    try {
+        if (typeof localStorage !== 'undefined') localStorage.removeItem(SAVED_CONFIG_KEY);
+    } catch (e) { /* ignore */ }
+    // expire cookie
+    setCookie(SAVED_CONFIG_KEY, '', -1);
+}
+
 const map = L.map('map', { zoomDelta: 0.1, zoomSnap: 0 }).setView(config.perimeterCenter, config.initialZoom);
 console.timeLog('init:main', '[INIT] Map created and view set', { center: config.perimeterCenter, zoom: config.initialZoom });
 
@@ -228,11 +271,12 @@ async function setupConfigSelector() {
         return;
     }
     selector.disabled = false;
-    let configToLoad = configs[0];
-    const storedConfig = localStorage.getItem('selectedConfig');
+    // Default selection: prefer Demo.json when available, otherwise first entry
+    let configToLoad = configs.includes('Demo.json') ? 'Demo.json' : configs[0];
+    // Try to restore previously saved selection (localStorage or cookie). Do not delete it here.
+    const storedConfig = readSavedConfig();
     if (storedConfig && configs.includes(storedConfig)) {
         configToLoad = storedConfig;
-        localStorage.removeItem('selectedConfig');
     }
     // Create a small search input to filter the selector options
     let searchInput = document.getElementById('config-selector-search');
@@ -299,7 +343,9 @@ async function setupConfigSelector() {
     // (si le search input est créé après, il la lira depuis selector.value)
     selector.addEventListener('change', async (e) => {
         if (e.target.value && e.target.value !== '__placeholder__') {
-            localStorage.setItem('selectedConfig', e.target.value);
+            // Persist the chosen config across sessions
+            writeSavedConfig(e.target.value);
+            // reload to apply the config cleanly
             window.location.reload();
         }
     });
