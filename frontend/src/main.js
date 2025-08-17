@@ -204,6 +204,8 @@ async function loadConfigList() {
             const opt = document.createElement('option');
             opt.value = cfg;
             opt.textContent = cfg.replace(/\.json$/, '');
+            // marque les options réelles pour les distinguer d'un placeholder temporaire
+            opt.dataset.real = 'true';
             selector.appendChild(opt);
         });
         console.timeEnd('loadConfigList');
@@ -243,21 +245,63 @@ async function setupConfigSelector() {
         searchInput.autocomplete = 'off';
         searchInput.setAttribute('aria-label', 'Rechercher une configuration');
         if (container) container.insertBefore(searchInput, selector);
-        // filter handler (do NOT auto-select an option; allow user to click the select)
+
+        // placeholder option qui s'affiche pendant la recherche
+        let placeholderOption = null;
+        // sauvegarde de la selection réelle avant recherche
+        let savedRealSelection = selector.value || configToLoad;
+
+        // filter handler
         searchInput.addEventListener('input', (e) => {
             const q = (e.target.value || '').toLowerCase().trim();
             Array.from(selector.options).forEach(opt => {
+                // ne pas cacher le placeholder si présent
+                if (opt.dataset && opt.dataset.real !== 'true') return;
                 const text = (opt.textContent || opt.value || '').toLowerCase();
                 opt.hidden = q ? !text.includes(q) : false;
             });
-            // don't change selector.value automatically - user must click to confirm
+            const firstVisible = Array.from(selector.options).find(o => !o.hidden && o.dataset && o.dataset.real === 'true');
+
+            if (q) {
+                // search active: afficher un placeholder invitant à cliquer pour sélectionner
+                if (!placeholderOption) {
+                    placeholderOption = document.createElement('option');
+                    placeholderOption.value = '__placeholder__';
+                    placeholderOption.textContent = 'Cliquer pour sélectionner';
+                    placeholderOption.disabled = true;
+                    placeholderOption.classList.add('config-placeholder');
+                }
+                if (selector.options[0] !== placeholderOption) selector.insertBefore(placeholderOption, selector.firstChild);
+                // selectionner le placeholder (affiche le texte)
+                selector.value = placeholderOption.value;
+            } else {
+                // search cleared: retirer placeholder et restaurer la selection réelle si possible
+                if (placeholderOption && selector.contains(placeholderOption)) {
+                    selector.removeChild(placeholderOption);
+                }
+                // restore saved selection si elle est visible
+                if (savedRealSelection && Array.from(selector.options).some(o => o.value === savedRealSelection && !o.hidden)) {
+                    selector.value = savedRealSelection;
+                } else if (firstVisible) {
+                    selector.value = firstVisible.value;
+                }
+            }
+        });
+
+        // quand l'utilisateur choisit réellement une option, mettre à jour la sauvegarde
+        selector.addEventListener('change', (e) => {
+            if (e.target.value && e.target.value !== '__placeholder__') savedRealSelection = e.target.value;
         });
     }
     await loadConfigFile(configToLoad);
     selector.value = configToLoad;
+    // stocke la selection initiale pour le restore après recherche
+    // (si le search input est créé après, il la lira depuis selector.value)
     selector.addEventListener('change', async (e) => {
-        localStorage.setItem('selectedConfig', e.target.value);
-        window.location.reload();
+        if (e.target.value && e.target.value !== '__placeholder__') {
+            localStorage.setItem('selectedConfig', e.target.value);
+            window.location.reload();
+        }
     });
     console.timeEnd('setupConfigSelector');
     console.log('[CONFIG] setupConfigSelector end');
