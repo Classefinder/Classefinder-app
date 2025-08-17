@@ -232,6 +232,27 @@ async function setupConfigSelector() {
         configToLoad = storedConfig;
         localStorage.removeItem('selectedConfig');
     }
+    // Create a small search input to filter the selector options
+    let searchInput = document.getElementById('config-selector-search');
+    if (!searchInput) {
+        const container = document.getElementById('config-selector-container');
+        searchInput = document.createElement('input');
+        searchInput.type = 'search';
+        searchInput.id = 'config-selector-search';
+        searchInput.placeholder = 'Rechercher...';
+        searchInput.autocomplete = 'off';
+        searchInput.setAttribute('aria-label', 'Rechercher une configuration');
+        if (container) container.insertBefore(searchInput, selector);
+        // filter handler (do NOT auto-select an option; allow user to click the select)
+        searchInput.addEventListener('input', (e) => {
+            const q = (e.target.value || '').toLowerCase().trim();
+            Array.from(selector.options).forEach(opt => {
+                const text = (opt.textContent || opt.value || '').toLowerCase();
+                opt.hidden = q ? !text.includes(q) : false;
+            });
+            // don't change selector.value automatically - user must click to confirm
+        });
+    }
     await loadConfigFile(configToLoad);
     selector.value = configToLoad;
     selector.addEventListener('change', async (e) => {
@@ -240,6 +261,8 @@ async function setupConfigSelector() {
     });
     console.timeEnd('setupConfigSelector');
     console.log('[CONFIG] setupConfigSelector end');
+    // ensure the search input is reset when setup completes
+    if (searchInput) searchInput.value = '';
 }
 
 setupConfigSelector();

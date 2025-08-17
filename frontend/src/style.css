@@ -36,6 +36,24 @@
     background: #fff;
 }
 
+/* Search input placed next to config selector */
+#config-selector-search {
+    font-size: 13px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    padding: 6px 8px 6px 34px;
+    margin-right: 8px;
+    width: 150px;
+    background: url('/images/search-icon.svg') no-repeat 10px center/16px 16px;
+}
+
+body.dark-mode #config-selector-search {
+    background: url('/images/search-icon-dark.svg') no-repeat 10px center/16px 16px;
+    background-color: #222;
+    color: #fff;
+    border-color: #444;
+}
+
 body.dark-mode #config-selector-container {
     background: #222;
     color: #fff;
@@ -502,6 +520,33 @@ body.dark-mode .custom-separator-vertical {
         max-width: none !important;
     }
 
+}
+
+/* Responsive: stack config selector search + select vertically on small screens */
+@media (max-width: 600px) {
+    #config-selector-container {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 6px;
+        right: 10px;
+        bottom: 10px;
+        padding: 6px;
+        max-width: calc(100vw - 20px);
+        width: auto;
+    }
+
+    #config-selector-search {
+        width: 100%;
+        margin-right: 0;
+        padding-left: 34px;
+        /* keep icon spacing */
+        box-sizing: border-box;
+    }
+
+    #config-selector {
+        width: 100%;
+        box-sizing: border-box;
+    }
 }
 
 

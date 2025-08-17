@@ -51,6 +51,10 @@ export function setupMapFeatures({ map, ETAGES, perimeterCenter, perimeterRadius
                         ETAGES: params.ETAGES || ETAGES,
                         getRouteAndPoints: params.getRouteAndPoints || getRouteAndPoints,
                         osrmUrl: params.osrmUrl || osrmUrl
+                        ,
+                        BASE_HUE: params.BASE_HUE,
+                        BASE_SAT: params.BASE_SAT,
+                        BASE_LIGHT: params.BASE_LIGHT
                     });
                 }
                 if (!departButtonAdded) {
