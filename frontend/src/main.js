@@ -273,8 +273,8 @@ function onLocationDenied() {
 document.addEventListener('DOMContentLoaded', () => {
     console.time('DOMContentLoaded');
     console.log('[INIT] DOMContentLoaded handler start');
-    // Create locate control but DO NOT auto-center when location is found (allowAutoCenter:false)
-    // then immediately start locate to force the browser permission prompt without changing the view.
+
+    // Create locate control
     const locCtrl = setupLocationControl({
         map,
         config,
@@ -288,8 +288,13 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         onDenied: () => onLocationDenied()
     });
-    // If the control exposes startLocate, call it to trigger the permission dialog but not change view
-    try { if (locCtrl && typeof locCtrl.startLocate === 'function') locCtrl.startLocate(); } catch (e) { /* ignore */ }
+
+    // Démarre immédiatement la localisation avec le plugin
+    try {
+        if (locCtrl && typeof locCtrl.startLocate === 'function') {
+            locCtrl.startLocate();
+        }
+    } catch (e) { /* ignore */ }
 
     const darkModeBtn = document.getElementById('dark-mode-toggle');
     if (darkModeBtn) {

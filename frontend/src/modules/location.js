@@ -15,7 +15,9 @@ export function setupLocationControl({ map, config, perimeterCenter, perimeterRa
             drawCircle: false,
             showPopup: false,
             locateOptions: {
-                enableHighAccuracy: true
+                enableHighAccuracy: true,
+                maximumAge: 0,  // Toujours obtenir une position fraîche
+                timeout: 10000  // Timeout après 10s
             }
         }).addTo(map);
         // Defensive: ensure the control isn't already running on some browsers/plugins
@@ -118,9 +120,7 @@ export function setupLocationControl({ map, config, perimeterCenter, perimeterRa
         window._cf_userMoveListenersAdded = true;
     }
 
-    // Do NOT start locating automatically. Some browsers (Firefox/Safari) trigger geolocation
-    // as soon as the control is created. Keep control creation idempotent and expose helpers
-    // to start/stop locate explicitly from application code.
+    // Expose a method to start locate using the plugin
     function startLocate() {
         try {
             window._cf_userMovedMap = false;
