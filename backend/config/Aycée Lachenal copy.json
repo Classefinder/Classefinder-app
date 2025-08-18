@@ -1,33 +1,33 @@
 {
   "ETAGES": [
     {
-      "nom": "Etage -1",
-      "code": "2",
-      "cheminUrl": "/geojson/chemins_etage1.geojson",
-      "batimentUrl": "/geojson/salles_etage1.geojson",
-      "backgroundUrl": {
-        "light": "./QTiles/etage2/{z}/{x}/{y}.png",
-        "dark": "./QTiles/etage2/{z}/{x}/{y}.png"
-      }
-    },
-    {
-      "nom": "Etage 0",
-      "code": "0",
-      "cheminUrl": "/geojson/chemins_etage2.geojson",
-      "batimentUrl": "/geojson/salles_etage2.geojson",
-      "backgroundUrl": {
-        "light": "./QTiles/etage2/{z}/{x}/{y}.png",
-        "dark": "./QTiles/etage0/{z}/{x}/{y}.png"
-      }
-    },
-    {
       "nom": "Etage 1",
-      "code": "10",
+      "code": "1",
       "cheminUrl": "/geojson/chemins_etage1.geojson",
       "batimentUrl": "/geojson/salles_etage1.geojson",
       "backgroundUrl": {
         "light": "./QTiles/etage1/{z}/{x}/{y}.png",
         "dark": "./QTiles/etage1/{z}/{x}/{y}.png"
+      }
+    },
+    {
+      "nom": "Etage 0",
+      "code": "0",
+      "cheminUrl": "/geojson/chemins_etage0.geojson",
+      "batimentUrl": "/geojson/salles_etage0.geojson",
+      "backgroundUrl": {
+        "light": "./QTiles/etage0/{z}/{x}/{y}.png",
+        "dark": "./QTiles/etage0/{z}/{x}/{y}.png"
+      }
+    },
+    {
+      "nom": "Etage -1",
+      "code": "2",
+      "cheminUrl": "/geojson/chemins_etage2.geojson",
+      "batimentUrl": "/geojson/salles_etage2.geojson",
+      "backgroundUrl": {
+        "light": "./QTiles/etage2/{z}/{x}/{y}.png",
+        "dark": "./QTiles/etage2/{z}/{x}/{y}.png"
       }
     }
   ],
