@@ -292,7 +292,59 @@ document.addEventListener('DOMContentLoaded', () => {
     // Démarre immédiatement la localisation avec le plugin
     try {
         if (locCtrl && typeof locCtrl.startLocate === 'function') {
-            locCtrl.startLocate();
+            // Use Permissions API when available to avoid triggering the geolocation
+            // permission prompt during cold startup (Firefox can appear to hang).
+            // If permission is already granted we start immediately. If denied,
+            // call the denied handler. If state is 'prompt', defer starting the
+            // locate until the user interacts (first click/keydown) to avoid a
+            // blocking prompt. As a fallback, do a short timeout start.
+            if (navigator.permissions && typeof navigator.permissions.query === 'function') {
+                navigator.permissions.query({ name: 'geolocation' }).then((perm) => {
+                    try {
+                        if (perm.state === 'granted') {
+                            locCtrl.startLocate();
+                        } else if (perm.state === 'denied') {
+                            // Keep same behaviour as when the plugin reports denial
+                            onLocationDenied();
+                        } else {
+                            // 'prompt' -> try to start immediately. Some browsers (or
+                            // configurations) may block until a user gesture; in that
+                            // case the call will throw or the returned promise will
+                            // reject, so fall back to deferring start until first
+                            // user interaction.
+                            const addDeferredStart = () => {
+                                const startOnce = () => {
+                                    try { locCtrl.startLocate(); } catch (e) { /* ignore */ }
+                                    window.removeEventListener('pointerdown', startOnce);
+                                    window.removeEventListener('keydown', startOnce);
+                                };
+                                window.addEventListener('pointerdown', startOnce, { once: true });
+                                window.addEventListener('keydown', startOnce, { once: true });
+                            };
+
+                            try {
+                                const res = locCtrl.startLocate();
+                                // If startLocate returns a promise, catch failures
+                                if (res && typeof res.then === 'function') {
+                                    res.catch(() => addDeferredStart());
+                                }
+                            } catch (err) {
+                                // Fallback: wait for the first user interaction
+                                addDeferredStart();
+                            }
+                        }
+                    } catch (e) {
+                        // If anything goes wrong, attempt a deferred start
+                        setTimeout(() => { try { locCtrl.startLocate(); } catch (err) { /* ignore */ } }, 500);
+                    }
+                }).catch(() => {
+                    // Permissions API failed - defer slightly to reduce startup impact
+                    setTimeout(() => { try { locCtrl.startLocate(); } catch (e) { /* ignore */ } }, 500);
+                });
+            } else {
+                // No Permissions API - defer slightly to reduce startup impact on some browsers
+                setTimeout(() => { try { locCtrl.startLocate(); } catch (e) { /* ignore */ } }, 500);
+            }
         }
     } catch (e) { /* ignore */ }
 
