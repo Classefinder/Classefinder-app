@@ -1,46 +1,90 @@
 /* Style pour les labels simples des salles (sans boutons) */
 .geojson-label {
-  background: rgba(255,255,255,0.85);
-  color: #222;
-  border-radius: 4px;
-  padding: 2px 8px;
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
-  border: 1px solid #ddd;
-  pointer-events: none;
-  white-space: nowrap;
+    background: rgba(255, 255, 255, 0.85);
+    color: #222;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    border: 1px solid #ddd;
+    pointer-events: none;
+    white-space: nowrap;
 }
+
 /* Sélecteur de config en bas à droite */
 #config-selector-container {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  z-index: 1100;
-  background: rgba(255,255,255,0.95);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  padding: 6px 12px;
-  display: flex;
-  align-items: center;
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 1100;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
 }
+
 #config-selector {
-  font-size: 14px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  padding: 2px 8px;
-  background: #fff;
+    font-size: 14px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    padding: 2px 8px;
+    background: #fff;
 }
+
 body.dark-mode #config-selector-container {
-  background: #222;
-  color: #fff;
-  border: 1px solid #444;
+    background: #222;
+    color: #fff;
+    border: 1px solid #444;
 }
+
 body.dark-mode #config-selector {
-  background: #222;
-  color: #fff;
-  border: 1px solid #444;
+    background: #222;
+    color: #fff;
+    border: 1px solid #444;
 }
+
+/* Choices.js dark mode overrides */
+.choices__inner {
+    background: #fff;
+    color: #000;
+}
+
+body.dark-mode .choices__inner {
+    background: #1e1e1e !important;
+    color: #fff !important;
+    border-color: #444 !important;
+}
+
+.choices__list--dropdown {
+    background: #fff;
+}
+
+body.dark-mode .choices__list--dropdown {
+    background: #1e1e1e !important;
+    border-color: #444 !important;
+}
+
+.choices__item--choice {
+    color: #000;
+}
+
+body.dark-mode .choices__item--choice {
+    color: #fff !important;
+}
+
+.choices__list--dropdown .choices__item--selectable.is-highlighted,
+.choices__list--dropdown .choices__item--selectable:hover {
+    background: #f0f0f0;
+}
+
+body.dark-mode .choices__list--dropdown .choices__item--selectable.is-highlighted,
+body.dark-mode .choices__list--dropdown .choices__item--selectable:hover {
+    background: #333 !important;
+}
+
 /* Masque uniquement le bouton fermé du Layer Control natif Leaflet, pas le panneau */
 .leaflet-control-layers .leaflet-control-layers-toggle {
     display: none !important;

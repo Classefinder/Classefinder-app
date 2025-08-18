@@ -206,6 +206,14 @@ async function loadConfigList() {
             opt.textContent = cfg.replace(/\.json$/, '');
             selector.appendChild(opt);
         });
+        // if a selected config was stored previously, mark the corresponding option
+        try {
+            const stored = localStorage.getItem('selectedConfig');
+            if (stored && configs.includes(stored)) {
+                const opt = selector.querySelector(`option[value="${stored}"]`);
+                if (opt) opt.selected = true;
+            }
+        } catch (e) { /* ignore */ }
         console.timeEnd('loadConfigList');
         console.log('[CONFIG] Config list loaded', configs);
         return configs;
@@ -230,10 +238,43 @@ async function setupConfigSelector() {
     const storedConfig = localStorage.getItem('selectedConfig');
     if (storedConfig && configs.includes(storedConfig)) {
         configToLoad = storedConfig;
-        localStorage.removeItem('selectedConfig');
+        // keep storedConfig so the UI can reflect the currently selected config after reload
     }
     await loadConfigFile(configToLoad);
     selector.value = configToLoad;
+    // ensure the option element is marked selected so Choices picks it up on init
+    try {
+        const opt = selector.querySelector(`option[value="${configToLoad}"]`);
+        if (opt) opt.selected = true;
+    } catch (e) { /* ignore */ }
+    // Initialize Choices.js to provide an in-dropdown search UI if available
+    try {
+        if (window.Choices && !selector._choicesInstance) {
+            selector._choicesInstance = new Choices(selector, {
+                searchEnabled: true,
+                itemSelectText: '',
+                shouldSort: false,
+                placeholder: true,
+                placeholderValue: 'Sélectionner une config...',
+                searchPlaceholderValue: 'Rechercher...'
+            });
+            // try to programmatically ensure the visible value matches the loaded config
+            try {
+                const ch = selector._choicesInstance;
+                if (ch) {
+                    if (typeof ch.setChoiceByValue === 'function') {
+                        ch.setChoiceByValue(configToLoad);
+                    } else if (typeof ch.setValue === 'function') {
+                        // some versions expose setValue
+                        try { ch.setValue(configToLoad); } catch (e) { /* ignore */ }
+                    }
+                }
+            } catch (e) { /* ignore */ }
+        }
+    } catch (err) {
+        console.warn('Choices initialization failed', err);
+    }
+
     selector.addEventListener('change', async (e) => {
         localStorage.setItem('selectedConfig', e.target.value);
         window.location.reload();
