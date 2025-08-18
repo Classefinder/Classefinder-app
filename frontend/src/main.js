@@ -9,6 +9,9 @@ import { setupTheme } from './modules/themeSetup.js';
 import { setupMapFeatures } from './modules/mapSetup.js';
 
 import * as userConfig from './modules/userConfig.js';
+// Choices will be installed via npm and bundled
+import Choices from 'choices.js';
+import 'choices.js/public/assets/styles/choices.min.css';
 
 // Performance tracing for init
 // Setup perf-start and console wrapper to add elapsed time + ISO timestamp to logs
@@ -247,9 +250,34 @@ async function setupConfigSelector() {
         const opt = selector.querySelector(`option[value="${configToLoad}"]`);
         if (opt) opt.selected = true;
     } catch (e) { /* ignore */ }
-    // Initialize Choices.js to provide an in-dropdown search UI if available
+    // Initialize Choices.js from the bundled import
     try {
-        if (window.Choices && !selector._choicesInstance) {
+        if (!selector._choicesInstance) {
+            // compute min-width based on widest option text (mirror native select behaviour)
+            let minWidthPx = null;
+            try {
+                const measurer = document.createElement('span');
+                measurer.style.position = 'absolute';
+                measurer.style.visibility = 'hidden';
+                measurer.style.whiteSpace = 'nowrap';
+                // use body font so measurement matches the rendered Choices label
+                measurer.style.font = window.getComputedStyle(document.body).font || '14px Arial';
+                document.body.appendChild(measurer);
+                let maxW = 0;
+                Array.from(selector.options).forEach(o => {
+                    measurer.textContent = o.textContent || '';
+                    const w = measurer.getBoundingClientRect().width;
+                    if (w > maxW) maxW = w;
+                });
+                document.body.removeChild(measurer);
+                const padding = 40; // room for dropdown icon + padding
+                minWidthPx = Math.ceil(maxW + padding);
+                // set fallback on the original select
+                selector.style.minWidth = minWidthPx + 'px';
+            } catch (e) {
+                // ignore measuring errors
+            }
+
             selector._choicesInstance = new Choices(selector, {
                 searchEnabled: true,
                 itemSelectText: '',
@@ -258,16 +286,25 @@ async function setupConfigSelector() {
                 placeholderValue: 'Sélectionner une config...',
                 searchPlaceholderValue: 'Rechercher...'
             });
-            // try to programmatically ensure the visible value matches the loaded config
+            // apply the computed min width to the Choices container so it doesn't shrink
             try {
                 const ch = selector._choicesInstance;
-                if (ch) {
-                    if (typeof ch.setChoiceByValue === 'function') {
-                        ch.setChoiceByValue(configToLoad);
-                    } else if (typeof ch.setValue === 'function') {
-                        // some versions expose setValue
-                        try { ch.setValue(configToLoad); } catch (e) { /* ignore */ }
-                    }
+                let choicesEl = null;
+                if (ch && ch.containerOuter) {
+                    // newer Choices stores containerOuter.element or containerOuter
+                    choicesEl = ch.containerOuter.element || ch.containerOuter;
+                }
+                if (!choicesEl) {
+                    // fallback: try to find the generated .choices element near the original select
+                    choicesEl = selector.parentElement && selector.parentElement.querySelector && selector.parentElement.querySelector('.choices');
+                    if (!choicesEl) choicesEl = document.querySelector('.choices');
+                }
+                if (choicesEl && minWidthPx) {
+                    choicesEl.style.minWidth = minWidthPx + 'px';
+                }
+                // ensure the visible value matches the loaded config
+                if (ch && typeof ch.setChoiceByValue === 'function') {
+                    ch.setChoiceByValue(configToLoad);
                 }
             } catch (e) { /* ignore */ }
         }

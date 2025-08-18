@@ -21,8 +21,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="src/style.css" />
-  <!-- Choices.js for searchable select (vanilla JS) -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+  <!-- Choices.js now imported via npm bundle -->
     <style>
       html,
       body,
@@ -39,8 +38,9 @@
   </head>
   <body>
     <div id="map"></div>
-    <div id="config-selector-container">
-      <select id="config-selector"></select>
+    <!-- config selector: lightweight wrapper that won't clip the dropdown -->
+    <div id="config-selector-wrapper" class="cf-select-wrapper">
+      <select id="config-selector" class="config-selector"></select>
     </div>
     <div id="custom-controls-container">
       <div id="custom-layer-control"></div>
@@ -62,7 +62,6 @@
     <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
     <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
     <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.20/leaflet-maplibre-gl.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
     <script type="module" src="src/main.js"></script>
   </body>
 </html>
