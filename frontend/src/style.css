@@ -10,7 +10,18 @@
     border: 1px solid #ddd;
     pointer-events: none;
     white-space: nowrap;
+    background: rgba(255, 255, 255, 0.85);
+    color: #222;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    border: 1px solid #ddd;
+    pointer-events: none;
+    white-space: nowrap;
 }
+
 
 /* Sélecteur de config en bas à droite */
 #config-selector-container {
@@ -61,6 +72,7 @@ body.dark-mode #config-selector-container {
     color: #fff;
     border: 1px solid #444;
 }
+
 
 body.dark-mode #config-selector {
     background: #222;
@@ -610,6 +622,33 @@ body.dark-mode .custom-separator-vertical {
 
 }
 
+/* Responsive: stack config selector search + select vertically on small screens */
+@media (max-width: 600px) {
+    #config-selector-container {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 6px;
+        right: 10px;
+        bottom: 10px;
+        padding: 6px;
+        max-width: calc(100vw - 20px);
+        width: auto;
+    }
+
+    #config-selector-search {
+        width: 100%;
+        margin-right: 0;
+        padding-left: 34px;
+        /* keep icon spacing */
+        box-sizing: border-box;
+    }
+
+    #config-selector {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+
 
 /* ================================================== */
 /* AUTRES COMPOSANTS */
@@ -862,4 +901,114 @@ body.dark-mode .custom-darkmode-btn:hover {
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
+}
+
+/* Overlay visible pendant la récupération de la position */
+#location-loading-overlay {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    background: rgba(0, 0, 0, 0.35);
+    transition: opacity 0.22s ease, visibility 0.22s ease;
+    pointer-events: none;
+    /* évite d'interférer quand caché */
+}
+
+#location-loading-overlay.location-loading-hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+#location-loading-overlay.location-loading-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.location-loading-content {
+    background: rgba(255, 255, 255, 0.98);
+    color: #111;
+    border-radius: 12px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    min-width: 220px;
+}
+
+.location-loading-text {
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+}
+
+body.dark-mode .location-loading-content {
+    background: #1e1e1e;
+    color: #fff;
+    border: 1px solid #333;
+}
+
+/* Visuals container: spinner + image */
+.location-loading-visuals {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Simple CSS spinner */
+.location-spinner {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 5px solid rgba(0, 0, 0, 0.08) !important;
+    border-top-color: #2c3e50 !important;
+    animation: cf-spin 1s linear infinite;
+}
+
+@keyframes cf-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.location-timeout-continue {
+    margin-top: 8px;
+    background: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+body.dark-mode .location-spinner {
+    border-top-color: #9fb2ff;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .location-timeout-continue {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+/* Error state: change text and spinner color */
+#location-loading-overlay.location-loading-error .location-loading-text {
+    color: #ff0000;
+}
+
+#location-loading-overlay.location-loading-error .location-spinner {
+    border-top-color: #ff6b6b;
+}
+
+#location-loading-overlay.location-loading-error .location-timeout-continue {
+    border-color: rgba(255, 107, 107, 0.2);
+    color: #c90000;
 }

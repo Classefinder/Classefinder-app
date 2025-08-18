@@ -8,7 +8,10 @@ export function setupSearchBars({
     cheminFeatures,
     ETAGES,
     getRouteAndPoints,
-    osrmUrl
+    osrmUrl,
+    BASE_HUE = 120,
+    BASE_SAT = 60,
+    BASE_LIGHT = 50
 }) {
     let depart = null;
     let departEtageIdx = null;
@@ -38,8 +41,9 @@ export function setupSearchBars({
         }
     }, 100);
 
-    // Couleur de surlignage (doit être cohérente avec geoFeatureInteraction.js)
-    const hoverColor = 'hsl(120, 100%, 45%)'; // Vert vif
+    // Couleur de surlignage : reuse the same active colour logic as click selection
+    const activeSat = Math.min(BASE_SAT + 30, 100);
+    const activeColor = `hsl(${BASE_HUE}, ${activeSat}%, ${BASE_LIGHT}%)`;
     let lastHighlightedLayers = [];
     let lastOriginalStyles = new Map();
 
@@ -106,7 +110,7 @@ export function setupSearchBars({
                         };
                         lastOriginalStyles.set(layer, orig);
                     }
-                    layer.setStyle({ color: hoverColor, fillColor: hoverColor });
+                    layer.setStyle({ color: activeColor, fillColor: activeColor });
                     toHighlight.push(layer);
                 }
             });

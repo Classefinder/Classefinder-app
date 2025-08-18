@@ -54,6 +54,49 @@ const config = {
     initialZoom: userConfig.initialZoom || 18
 };
 
+// Helpers for persisting the selected config across browser sessions.
+// Use localStorage when available, fallback to cookies when it's not.
+const SAVED_CONFIG_KEY = 'selectedConfig';
+function setCookie(name, value, days) {
+    try {
+        const expires = typeof days === 'number' ? `; expires=${new Date(Date.now() + days * 864e5).toUTCString()}` : '';
+        document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value || '')}${expires}; path=/`;
+    } catch (e) { /* ignore */ }
+}
+function getCookie(name) {
+    try {
+        const matches = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()\[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
+        return matches ? decodeURIComponent(matches[1]) : null;
+    } catch (e) { return null; }
+}
+function readSavedConfig() {
+    try {
+        if (typeof localStorage !== 'undefined') {
+            const v = localStorage.getItem(SAVED_CONFIG_KEY);
+            if (v) return v;
+        }
+    } catch (e) { /* localStorage unavailable */ }
+    // fallback to cookie
+    return getCookie(SAVED_CONFIG_KEY);
+}
+function writeSavedConfig(value) {
+    try {
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(SAVED_CONFIG_KEY, value);
+            return;
+        }
+    } catch (e) { /* can't use localStorage */ }
+    // fallback: store for 30 days
+    setCookie(SAVED_CONFIG_KEY, value, 30);
+}
+function removeSavedConfig() {
+    try {
+        if (typeof localStorage !== 'undefined') localStorage.removeItem(SAVED_CONFIG_KEY);
+    } catch (e) { /* ignore */ }
+    // expire cookie
+    setCookie(SAVED_CONFIG_KEY, '', -1);
+}
+
 const map = L.map('map', { zoomDelta: 0.1, zoomSnap: 0 }).setView(config.perimeterCenter, config.initialZoom);
 console.timeLog('init:main', '[INIT] Map created and view set', { center: config.perimeterCenter, zoom: config.initialZoom });
 
@@ -207,6 +250,8 @@ async function loadConfigList() {
             const opt = document.createElement('option');
             opt.value = cfg;
             opt.textContent = cfg.replace(/\.json$/, '');
+            // marque les options réelles pour les distinguer d'un placeholder temporaire
+            opt.dataset.real = 'true';
             selector.appendChild(opt);
         });
         // if a selected config was stored previously, mark the corresponding option
@@ -237,8 +282,10 @@ async function setupConfigSelector() {
         return;
     }
     selector.disabled = false;
-    let configToLoad = configs[0];
-    const storedConfig = localStorage.getItem('selectedConfig');
+    // Default selection: prefer Demo.json when available, otherwise first entry
+    let configToLoad = configs.includes('Demo.json') ? 'Demo.json' : configs[0];
+    // Try to restore previously saved selection (localStorage or cookie). Do not delete it here.
+    const storedConfig = readSavedConfig();
     if (storedConfig && configs.includes(storedConfig)) {
         configToLoad = storedConfig;
         // keep storedConfig so the UI can reflect the currently selected config after reload
@@ -313,11 +360,17 @@ async function setupConfigSelector() {
     }
 
     selector.addEventListener('change', async (e) => {
-        localStorage.setItem('selectedConfig', e.target.value);
-        window.location.reload();
+        if (e.target.value && e.target.value !== '__placeholder__') {
+            // Persist the chosen config across sessions
+            writeSavedConfig(e.target.value);
+            // reload to apply the config cleanly
+            window.location.reload();
+        }
     });
     console.timeEnd('setupConfigSelector');
     console.log('[CONFIG] setupConfigSelector end');
+    // ensure the search input is reset when setup completes
+    if (searchInput) searchInput.value = '';
 }
 
 setupConfigSelector();
@@ -339,6 +392,8 @@ function onLocationGranted() {
             blacklist: config.blacklist
         });
     }
+    // Masque l'overlay de récupération de position
+    hideLocationLoadingOverlay();
 }
 
 function onLocationDenied() {
@@ -346,6 +401,8 @@ function onLocationDenied() {
     // only keep base map + perimeter visible
     setupLocationControl({ map, config, perimeterCenter: config.perimeterCenter, perimeterRadius: config.perimeterRadius });
     map.setView(config.perimeterCenter, config.initialZoom || 18);
+    // Masque l'overlay même si l'utilisateur refuse
+    hideLocationLoadingOverlay();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -358,7 +415,10 @@ document.addEventListener('DOMContentLoaded', () => {
         config,
         allowAutoCenter: false,
         onInside: (e, perimeterCircle) => {
-            if (window._cf_locationPermission !== 'granted') onLocationGranted();
+            // Toujours déclencher l'initialisation quand une position est trouvée.
+            // Le contrôle de confidentialité est assuré par le fait que cet évènement
+            // n'arrive que si la permission est accordée.
+            onLocationGranted();
         },
         onOutside: (e) => {
             // Keep view on perimeter center even if user is outside
@@ -469,3 +529,72 @@ setTimeout(() => {
 }, 500);
 
 console.timeLog('init:main', '[INIT] End of initial script sync path (async loads may still run)');
+
+// Helpers pour afficher/masquer l'overlay de récupération de position
+function showLocationLoadingOverlay() {
+    try {
+        const el = document.getElementById('location-loading-overlay');
+        if (el) {
+            el.classList.remove('location-loading-hidden');
+            el.classList.add('location-loading-visible');
+            el.setAttribute('aria-hidden', 'false');
+            resetLocationOverlayState();
+            startLocationOverlayTimeout();
+        }
+    } catch (e) { /* ignore */ }
+}
+
+function hideLocationLoadingOverlay() {
+    try {
+        const el = document.getElementById('location-loading-overlay');
+        if (el) {
+            el.classList.remove('location-loading-visible');
+            el.classList.add('location-loading-hidden');
+            el.setAttribute('aria-hidden', 'true');
+            clearLocationOverlayTimeout();
+            resetLocationOverlayState();
+        }
+    } catch (e) { /* ignore */ }
+}
+
+// Timeout pour l'overlay de localisation. Si la permission n'est pas résolue
+// après ce délai, passer en état d'erreur et proposer "Continuer sans position".
+const LOCATION_OVERLAY_TIMEOUT_MS = 7000; // 7 seconds
+let _cf_locationOverlayTimer = null;
+
+function startLocationOverlayTimeout() {
+    clearLocationOverlayTimeout();
+    _cf_locationOverlayTimer = setTimeout(() => {
+        try {
+            const el = document.getElementById('location-loading-overlay');
+            if (!el) return;
+            el.classList.add('location-loading-error');
+            const btn = el.querySelector('.location-timeout-continue');
+            if (btn) {
+                btn.setAttribute('aria-hidden', 'false');
+                btn.style.display = '';
+            }
+            const text = el.querySelector('.location-loading-text');
+            if (text) text.textContent = 'Cela prend plus de temps que prévu !';
+        } catch (e) { /* ignore */ }
+    }, LOCATION_OVERLAY_TIMEOUT_MS);
+}
+
+function clearLocationOverlayTimeout() {
+    try { if (_cf_locationOverlayTimer) { clearTimeout(_cf_locationOverlayTimer); _cf_locationOverlayTimer = null; } } catch (e) { }
+}
+
+function resetLocationOverlayState() {
+    try {
+        const el = document.getElementById('location-loading-overlay');
+        if (!el) return;
+        el.classList.remove('location-loading-error');
+        const btn = el.querySelector('.location-timeout-continue');
+        if (btn) {
+            btn.setAttribute('aria-hidden', 'true');
+            btn.style.display = 'none';
+        }
+        const text = el.querySelector('.location-loading-text');
+        if (text) text.textContent = 'récupération de votre position';
+    } catch (e) { /* ignore */ }
+}

@@ -1,13 +1,13 @@
 {
   "ETAGES": [
     {
-      "nom": "Etage -1",
-      "code": "2",
-      "cheminUrl": "/geojson/chemins_etage2.geojson",
-      "batimentUrl": "/geojson/salles_etage2.geojson",
+      "nom": "Etage 1",
+      "code": "1",
+      "cheminUrl": "/geojson/chemins_etage1.geojson",
+      "batimentUrl": "/geojson/salles_etage1.geojson",
       "backgroundUrl": {
-        "light": "./QTiles/etage2/{z}/{x}/{y}.png",
-        "dark": "./QTiles/etage2/{z}/{x}/{y}.png"
+        "light": "./QTiles/etage1/{z}/{x}/{y}.png",
+        "dark": "./QTiles/etage1/{z}/{x}/{y}.png"
       }
     },
     {
@@ -21,27 +21,26 @@
       }
     },
     {
-      "nom": "Etage 1",
-      "code": "1",
-      "cheminUrl": "/geojson/chemins_etage1.geojson",
-      "batimentUrl": "/geojson/salles_etage1.geojson",
+      "nom": "Etage -1",
+      "code": "2",
+      "cheminUrl": "/geojson/chemins_etage2.geojson",
+      "batimentUrl": "/geojson/salles_etage2.geojson",
       "backgroundUrl": {
-        "light": "./QTiles/etage1/{z}/{x}/{y}.png",
-        "dark": "./QTiles/etage1/{z}/{x}/{y}.png"
+        "light": "./QTiles/etage2/{z}/{x}/{y}.png",
+        "dark": "./QTiles/etage2/{z}/{x}/{y}.png"
       }
     }
   ],
   "perimeterCenter": [
     45.93728985010814,
-    6.132621267468342
+    5.132621267468342
   ],
-  "perimeterRadius": 1000000000,
-  "BASE_HUE": 0,
+  "perimeterRadius": 1000000000000,
+  "BASE_HUE": 100,
   "BASE_SAT": 70,
   "BASE_LIGHT": 55,
   "blacklist": [
-    "",
-    "escalier"
+    ""
   ],
   "osrmUrl": "https://classefinder.duckdns.org/osrm/route/v1/driving",
   "initialZoom": 18
