@@ -9,6 +9,9 @@ import { setupTheme } from './modules/themeSetup.js';
 import { setupMapFeatures } from './modules/mapSetup.js';
 
 import * as userConfig from './modules/userConfig.js';
+// Choices will be installed via npm and bundled
+import Choices from 'choices.js';
+import 'choices.js/public/assets/styles/choices.min.css';
 
 // Performance tracing for init
 // Setup perf-start and console wrapper to add elapsed time + ISO timestamp to logs
@@ -251,6 +254,14 @@ async function loadConfigList() {
             opt.dataset.real = 'true';
             selector.appendChild(opt);
         });
+        // if a selected config was stored previously, mark the corresponding option
+        try {
+            const stored = localStorage.getItem('selectedConfig');
+            if (stored && configs.includes(stored)) {
+                const opt = selector.querySelector(`option[value="${stored}"]`);
+                if (opt) opt.selected = true;
+            }
+        } catch (e) { /* ignore */ }
         console.timeEnd('loadConfigList');
         console.log('[CONFIG] Config list loaded', configs);
         return configs;
@@ -277,70 +288,77 @@ async function setupConfigSelector() {
     const storedConfig = readSavedConfig();
     if (storedConfig && configs.includes(storedConfig)) {
         configToLoad = storedConfig;
-    }
-    // Create a small search input to filter the selector options
-    let searchInput = document.getElementById('config-selector-search');
-    if (!searchInput) {
-        const container = document.getElementById('config-selector-container');
-        searchInput = document.createElement('input');
-        searchInput.type = 'search';
-        searchInput.id = 'config-selector-search';
-        searchInput.placeholder = 'Rechercher...';
-        searchInput.autocomplete = 'off';
-        searchInput.setAttribute('aria-label', 'Rechercher une configuration');
-        if (container) container.insertBefore(searchInput, selector);
-
-        // placeholder option qui s'affiche pendant la recherche
-        let placeholderOption = null;
-        // sauvegarde de la selection réelle avant recherche
-        let savedRealSelection = selector.value || configToLoad;
-
-        // filter handler
-        searchInput.addEventListener('input', (e) => {
-            const q = (e.target.value || '').toLowerCase().trim();
-            Array.from(selector.options).forEach(opt => {
-                // ne pas cacher le placeholder si présent
-                if (opt.dataset && opt.dataset.real !== 'true') return;
-                const text = (opt.textContent || opt.value || '').toLowerCase();
-                opt.hidden = q ? !text.includes(q) : false;
-            });
-            const firstVisible = Array.from(selector.options).find(o => !o.hidden && o.dataset && o.dataset.real === 'true');
-
-            if (q) {
-                // search active: afficher un placeholder invitant à cliquer pour sélectionner
-                if (!placeholderOption) {
-                    placeholderOption = document.createElement('option');
-                    placeholderOption.value = '__placeholder__';
-                    placeholderOption.textContent = 'Cliquer pour sélectionner';
-                    placeholderOption.disabled = true;
-                    placeholderOption.classList.add('config-placeholder');
-                }
-                if (selector.options[0] !== placeholderOption) selector.insertBefore(placeholderOption, selector.firstChild);
-                // selectionner le placeholder (affiche le texte)
-                selector.value = placeholderOption.value;
-            } else {
-                // search cleared: retirer placeholder et restaurer la selection réelle si possible
-                if (placeholderOption && selector.contains(placeholderOption)) {
-                    selector.removeChild(placeholderOption);
-                }
-                // restore saved selection si elle est visible
-                if (savedRealSelection && Array.from(selector.options).some(o => o.value === savedRealSelection && !o.hidden)) {
-                    selector.value = savedRealSelection;
-                } else if (firstVisible) {
-                    selector.value = firstVisible.value;
-                }
-            }
-        });
-
-        // quand l'utilisateur choisit réellement une option, mettre à jour la sauvegarde
-        selector.addEventListener('change', (e) => {
-            if (e.target.value && e.target.value !== '__placeholder__') savedRealSelection = e.target.value;
-        });
+        // keep storedConfig so the UI can reflect the currently selected config after reload
     }
     await loadConfigFile(configToLoad);
     selector.value = configToLoad;
-    // stocke la selection initiale pour le restore après recherche
-    // (si le search input est créé après, il la lira depuis selector.value)
+    // ensure the option element is marked selected so Choices picks it up on init
+    try {
+        const opt = selector.querySelector(`option[value="${configToLoad}"]`);
+        if (opt) opt.selected = true;
+    } catch (e) { /* ignore */ }
+    // Initialize Choices.js from the bundled import
+    try {
+        if (!selector._choicesInstance) {
+            // compute min-width based on widest option text (mirror native select behaviour)
+            let minWidthPx = null;
+            try {
+                const measurer = document.createElement('span');
+                measurer.style.position = 'absolute';
+                measurer.style.visibility = 'hidden';
+                measurer.style.whiteSpace = 'nowrap';
+                // use body font so measurement matches the rendered Choices label
+                measurer.style.font = window.getComputedStyle(document.body).font || '14px Arial';
+                document.body.appendChild(measurer);
+                let maxW = 0;
+                Array.from(selector.options).forEach(o => {
+                    measurer.textContent = o.textContent || '';
+                    const w = measurer.getBoundingClientRect().width;
+                    if (w > maxW) maxW = w;
+                });
+                document.body.removeChild(measurer);
+                const padding = 40; // room for dropdown icon + padding
+                minWidthPx = Math.ceil(maxW + padding);
+                // set fallback on the original select
+                selector.style.minWidth = minWidthPx + 'px';
+            } catch (e) {
+                // ignore measuring errors
+            }
+
+            selector._choicesInstance = new Choices(selector, {
+                searchEnabled: true,
+                itemSelectText: '',
+                shouldSort: false,
+                placeholder: true,
+                placeholderValue: 'Sélectionner une config...',
+                searchPlaceholderValue: 'Rechercher...'
+            });
+            // apply the computed min width to the Choices container so it doesn't shrink
+            try {
+                const ch = selector._choicesInstance;
+                let choicesEl = null;
+                if (ch && ch.containerOuter) {
+                    // newer Choices stores containerOuter.element or containerOuter
+                    choicesEl = ch.containerOuter.element || ch.containerOuter;
+                }
+                if (!choicesEl) {
+                    // fallback: try to find the generated .choices element near the original select
+                    choicesEl = selector.parentElement && selector.parentElement.querySelector && selector.parentElement.querySelector('.choices');
+                    if (!choicesEl) choicesEl = document.querySelector('.choices');
+                }
+                if (choicesEl && minWidthPx) {
+                    choicesEl.style.minWidth = minWidthPx + 'px';
+                }
+                // ensure the visible value matches the loaded config
+                if (ch && typeof ch.setChoiceByValue === 'function') {
+                    ch.setChoiceByValue(configToLoad);
+                }
+            } catch (e) { /* ignore */ }
+        }
+    } catch (err) {
+        console.warn('Choices initialization failed', err);
+    }
+
     selector.addEventListener('change', async (e) => {
         if (e.target.value && e.target.value !== '__placeholder__') {
             // Persist the chosen config across sessions
@@ -410,115 +428,60 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Démarre immédiatement la localisation avec le plugin
-    // - Si la permission est déjà "granted", on adapte les locateOptions pour
-    //   privilégier une réponse rapide (cache / faible précision) afin d'éviter
-    //   les longues attentes liées à la haute précision GPS.
-    (async function startLocateSmartly() {
-        try {
-            // Affiche l'overlay pendant que le navigateur demande la permission
-            showLocationLoadingOverlay();
-
-            // Récupère les options par défaut du contrôle (si présentes)
-            let locateOptions = (locCtrl && locCtrl.lc && locCtrl.lc.options && locCtrl.lc.options.locateOptions)
-                || (locCtrl && locCtrl.options && locCtrl.options.locateOptions)
-                || { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 };
-
-
-            // Lance immédiatement une tentative rapide (cache) de récupération
-            // de position pour déclencher les handlers sans attendre la Permissions API.
-            try {
-                if (navigator.geolocation && navigator.geolocation.getCurrentPosition) {
-                    navigator.geolocation.getCurrentPosition(function (pos) {
-                        try {
-                            const latlng = L.latLng(pos.coords.latitude, pos.coords.longitude);
-                            const ev = { latlng: latlng, accuracy: pos.coords.accuracy, coords: pos.coords, timestamp: pos.timestamp };
-                            map.fire('locationfound', ev);
-                        } catch (e) { /* ignore */ }
-                    }, function (err) {
-                        // ignore quick failure; plugin will be started below
-                    }, { enableHighAccuracy: false, maximumAge: 60000, timeout: 2000 });
-                }
-            } catch (e) { /* ignore */ }
-
-            // Probe Permissions API en tâche de fond pour ajuster les options du contrôle
-            try {
-                if (navigator.permissions && navigator.permissions.query) {
-                    navigator.permissions.query({ name: 'geolocation' }).then(status => {
-                        try {
-                            window._cf_locationPermission = status.state === 'granted' ? 'granted' : (status.state === 'denied' ? 'denied' : null);
-                            if (status.state === 'granted') {
-                                locateOptions = Object.assign({}, locateOptions, { enableHighAccuracy: false, maximumAge: 60000, timeout: 2000 });
-                            }
-                            try { status.onchange = () => { window._cf_locationPermission = status.state === 'granted' ? 'granted' : (status.state === 'denied' ? 'denied' : null); }; } catch (e) { /* ignore */ }
-
-                            // Update control options if possible
-                            try {
-                                if (locCtrl && locCtrl.lc && locCtrl.lc.options) {
-                                    locCtrl.lc.options.locateOptions = locateOptions;
-                                } else if (locCtrl && locCtrl.options) {
-                                    locCtrl.options.locateOptions = locateOptions;
-                                }
-                            } catch (e) { /* ignore */ }
-                        } catch (e) { /* ignore processing errors */ }
-                    }).catch(() => { /* ignore */ });
-                }
-            } catch (e) { /* ignore */ }
-
-            // Applique les options adaptées au contrôle locate (si instance présente)
-            try {
-                if (locCtrl && locCtrl.lc && locCtrl.lc.options) {
-                    locCtrl.lc.options.locateOptions = locateOptions;
-                } else if (locCtrl && locCtrl.options) {
-                    locCtrl.options.locateOptions = locateOptions;
-                }
-            } catch (e) { /* ignore */ }
-
-            // If permission already granted, try a fast geolocation call (uses cache) to
-            // quickly obtain a position and trigger the same handlers as the plugin.
-            // This avoids waiting for a slow high-accuracy GPS warmup.
-            let started = false;
-            try {
-                if (window._cf_locationPermission === 'granted' && navigator.geolocation && navigator.geolocation.getCurrentPosition) {
-                    try {
-                        navigator.geolocation.getCurrentPosition(function (pos) {
-                            try {
-                                const latlng = L.latLng(pos.coords.latitude, pos.coords.longitude);
-                                const ev = { latlng: latlng, accuracy: pos.coords.accuracy, coords: pos.coords, timestamp: pos.timestamp };
-                                // Fire the same event the plugin/listeners expect
-                                try { map.fire('locationfound', ev); } catch (e) { /* ignore */ }
-                            } catch (e) { /* ignore event construction */ }
-                        }, function (err) {
-                            // If this quick call fails (timeout), fallback to plugin start below
-                        }, { enableHighAccuracy: false, maximumAge: 60000, timeout: 2000 });
-                        // mark that we'll also start the plugin (non-blocking)
-                        started = true;
-                    } catch (e) { /* ignore getCurrentPosition errors */ }
-                }
-            } catch (e) { /* ignore */ }
-
-            // Démarre la localisation via l'abstraction fournie par setupLocationControl
-            if (locCtrl && typeof locCtrl.startLocate === 'function') locCtrl.startLocate();
-        } catch (e) {
-            // En cas d'erreur, fallback vers le démarrage simple
-            try { if (locCtrl && typeof locCtrl.startLocate === 'function') locCtrl.startLocate(); } catch (e2) { /* ignore */ }
-        }
-    })();
-
-    // Attacher le bouton "Continuer sans position" si présent
     try {
-        const overlay = document.getElementById('location-loading-overlay');
-        if (overlay) {
-            const btn = overlay.querySelector('.location-timeout-continue');
-            if (btn) {
-                // Cacher par défaut jusqu'au timeout
-                btn.style.display = 'none';
-                btn.addEventListener('click', () => {
+        if (locCtrl && typeof locCtrl.startLocate === 'function') {
+            // Use Permissions API when available to avoid triggering the geolocation
+            // permission prompt during cold startup (Firefox can appear to hang).
+            // If permission is already granted we start immediately. If denied,
+            // call the denied handler. If state is 'prompt', defer starting the
+            // locate until the user interacts (first click/keydown) to avoid a
+            // blocking prompt. As a fallback, do a short timeout start.
+            if (navigator.permissions && typeof navigator.permissions.query === 'function') {
+                navigator.permissions.query({ name: 'geolocation' }).then((perm) => {
                     try {
-                        // User chooses to continue without position
-                        hideLocationLoadingOverlay();
-                        onLocationDenied();
-                    } catch (e) { /* ignore */ }
+                        if (perm.state === 'granted') {
+                            locCtrl.startLocate();
+                        } else if (perm.state === 'denied') {
+                            // Keep same behaviour as when the plugin reports denial
+                            onLocationDenied();
+                        } else {
+                            // 'prompt' -> try to start immediately. Some browsers (or
+                            // configurations) may block until a user gesture; in that
+                            // case the call will throw or the returned promise will
+                            // reject, so fall back to deferring start until first
+                            // user interaction.
+                            const addDeferredStart = () => {
+                                const startOnce = () => {
+                                    try { locCtrl.startLocate(); } catch (e) { /* ignore */ }
+                                    window.removeEventListener('pointerdown', startOnce);
+                                    window.removeEventListener('keydown', startOnce);
+                                };
+                                window.addEventListener('pointerdown', startOnce, { once: true });
+                                window.addEventListener('keydown', startOnce, { once: true });
+                            };
+
+                            try {
+                                const res = locCtrl.startLocate();
+                                // If startLocate returns a promise, catch failures
+                                if (res && typeof res.then === 'function') {
+                                    res.catch(() => addDeferredStart());
+                                }
+                            } catch (err) {
+                                // Fallback: wait for the first user interaction
+                                addDeferredStart();
+                            }
+                        }
+                    } catch (e) {
+                        // If anything goes wrong, attempt a deferred start
+                        setTimeout(() => { try { locCtrl.startLocate(); } catch (err) { /* ignore */ } }, 500);
+                    }
+                }).catch(() => {
+                    // Permissions API failed - defer slightly to reduce startup impact
+                    setTimeout(() => { try { locCtrl.startLocate(); } catch (e) { /* ignore */ } }, 500);
                 });
+            } else {
+                // No Permissions API - defer slightly to reduce startup impact on some browsers
+                setTimeout(() => { try { locCtrl.startLocate(); } catch (e) { /* ignore */ } }, 500);
             }
         }
     } catch (e) { /* ignore */ }

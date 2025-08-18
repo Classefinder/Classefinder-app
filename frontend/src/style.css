@@ -10,59 +10,159 @@
     border: 1px solid #ddd;
     pointer-events: none;
     white-space: nowrap;
+    background: rgba(255, 255, 255, 0.85);
+    color: #222;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    border: 1px solid #ddd;
+    pointer-events: none;
+    white-space: nowrap;
 }
+
 
 /* Sélecteur de config en bas à droite */
 #config-selector-container {
     position: fixed;
-    right: 10px;
-    bottom: 17px;
+    right: 20px;
+    bottom: 20px;
     z-index: 1100;
     background: rgba(255, 255, 255, 0.95);
-    border-radius: 15px;
-    border: 2px solid #d9d9d9d9;
+    border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    padding: 6px;
+    padding: 6px 12px;
     display: flex;
     align-items: center;
+}
+
+#config-selector-wrapper,
+#config-selector-container {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 1100;
+    /* make wrapper minimal so dropdown can overflow */
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    display: block;
 }
 
 #config-selector {
     font-size: 14px;
     border-radius: 4px;
     border: 1px solid #ccc;
-    border: 1px solid #dddddd00 !important;
     padding: 2px 8px;
     background: #fff;
 }
 
-/* Search input placed next to config selector */
-#config-selector-search {
+#config-selector,
+.config-selector {
     font-size: 13px;
-    border-radius: 8px;
-    border: 1px solid #e0e0e0;
-    padding: 6px 8px 6px 34px;
-    margin-right: 8px;
-    width: 150px;
-    background: url('/images/search-icon.svg') no-repeat 10px center/16px 16px;
-}
-
-body.dark-mode #config-selector-search {
-    background: url('/images/search-icon-dark.svg') no-repeat 10px center/16px 16px;
-    background-color: #222;
-    color: #fff;
-    border-color: #444;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    padding: 2px 8px;
+    background: #fff;
 }
 
 body.dark-mode #config-selector-container {
     background: #222;
     color: #fff;
-    border: 2px solid #444;
+    border: 1px solid #444;
 }
+
 
 body.dark-mode #config-selector {
     background: #222;
     color: #fff;
+    border: 1px solid #444;
+}
+
+/* Choices.js dark mode overrides */
+.choices__inner {
+    background: #fff;
+    color: #000;
+}
+
+body.dark-mode .choices__inner {
+    background: #1e1e1e !important;
+    color: #fff !important;
+    border-color: #444 !important;
+}
+
+.choices__list--dropdown {
+    background: #fff;
+}
+
+body.dark-mode .choices__list--dropdown {
+    background: #1e1e1e !important;
+    border-color: #444 !important;
+}
+
+.choices__item--choice {
+    color: #000;
+}
+
+body.dark-mode .choices__item--choice {
+    color: #fff !important;
+}
+
+.choices__list--dropdown .choices__item--selectable.is-highlighted,
+.choices__list--dropdown .choices__item--selectable:hover {
+    background: #f0f0f0;
+}
+
+body.dark-mode .choices__list--dropdown .choices__item--selectable.is-highlighted,
+body.dark-mode .choices__list--dropdown .choices__item--selectable:hover {
+    background: #333 !important;
+}
+
+/* Prevent choices items wrapping and style the search input */
+.choices__inner {
+    white-space: nowrap;
+}
+
+.choices__inner,
+.choices__inner .choices__input {
+    height: 30px !important;
+    /* significantly smaller */
+    min-height: 30px !important;
+    line-height: 20px !important;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+    border-radius: 15px !important;
+}
+
+.choices {
+    overflow: visible !important;
+    /* allow dropdown overflow outside wrapper */
+}
+
+.choices__list--dropdown {
+    z-index: 1200 !important;
+    border-radius: 15px !important;
+    width: calc(100% + 15px) !important;
+    /* ensure dropdown on top */
+}
+
+.choices__list--dropdown .choices__item--choice {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.choices__input--cloned {
+    background: transparent;
+}
+
+/* Search input dark mode */
+body.dark-mode .choices__input,
+body.dark-mode .choices__input--cloned {
+    background: #1e1e1e !important;
+    color: #fff !important;
+    border-color: #444 !important;
 }
 
 /* Masque uniquement le bouton fermé du Layer Control natif Leaflet, pas le panneau */
