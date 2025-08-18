@@ -397,7 +397,10 @@ document.addEventListener('DOMContentLoaded', () => {
         config,
         allowAutoCenter: false,
         onInside: (e, perimeterCircle) => {
-            if (window._cf_locationPermission !== 'granted') onLocationGranted();
+            // Toujours déclencher l'initialisation quand une position est trouvée.
+            // Le contrôle de confidentialité est assuré par le fait que cet évènement
+            // n'arrive que si la permission est accordée.
+            onLocationGranted();
         },
         onOutside: (e) => {
             // Keep view on perimeter center even if user is outside
@@ -407,13 +410,99 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Démarre immédiatement la localisation avec le plugin
-    try {
-        // Affiche l'overlay pendant que le navigateur demande la permission
-        showLocationLoadingOverlay();
-        if (locCtrl && typeof locCtrl.startLocate === 'function') {
-            locCtrl.startLocate();
+    // - Si la permission est déjà "granted", on adapte les locateOptions pour
+    //   privilégier une réponse rapide (cache / faible précision) afin d'éviter
+    //   les longues attentes liées à la haute précision GPS.
+    (async function startLocateSmartly() {
+        try {
+            // Affiche l'overlay pendant que le navigateur demande la permission
+            showLocationLoadingOverlay();
+
+            // Récupère les options par défaut du contrôle (si présentes)
+            let locateOptions = (locCtrl && locCtrl.lc && locCtrl.lc.options && locCtrl.lc.options.locateOptions)
+                || (locCtrl && locCtrl.options && locCtrl.options.locateOptions)
+                || { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 };
+
+
+            // Lance immédiatement une tentative rapide (cache) de récupération
+            // de position pour déclencher les handlers sans attendre la Permissions API.
+            try {
+                if (navigator.geolocation && navigator.geolocation.getCurrentPosition) {
+                    navigator.geolocation.getCurrentPosition(function (pos) {
+                        try {
+                            const latlng = L.latLng(pos.coords.latitude, pos.coords.longitude);
+                            const ev = { latlng: latlng, accuracy: pos.coords.accuracy, coords: pos.coords, timestamp: pos.timestamp };
+                            map.fire('locationfound', ev);
+                        } catch (e) { /* ignore */ }
+                    }, function (err) {
+                        // ignore quick failure; plugin will be started below
+                    }, { enableHighAccuracy: false, maximumAge: 60000, timeout: 2000 });
+                }
+            } catch (e) { /* ignore */ }
+
+            // Probe Permissions API en tâche de fond pour ajuster les options du contrôle
+            try {
+                if (navigator.permissions && navigator.permissions.query) {
+                    navigator.permissions.query({ name: 'geolocation' }).then(status => {
+                        try {
+                            window._cf_locationPermission = status.state === 'granted' ? 'granted' : (status.state === 'denied' ? 'denied' : null);
+                            if (status.state === 'granted') {
+                                locateOptions = Object.assign({}, locateOptions, { enableHighAccuracy: false, maximumAge: 60000, timeout: 2000 });
+                            }
+                            try { status.onchange = () => { window._cf_locationPermission = status.state === 'granted' ? 'granted' : (status.state === 'denied' ? 'denied' : null); }; } catch (e) { /* ignore */ }
+
+                            // Update control options if possible
+                            try {
+                                if (locCtrl && locCtrl.lc && locCtrl.lc.options) {
+                                    locCtrl.lc.options.locateOptions = locateOptions;
+                                } else if (locCtrl && locCtrl.options) {
+                                    locCtrl.options.locateOptions = locateOptions;
+                                }
+                            } catch (e) { /* ignore */ }
+                        } catch (e) { /* ignore processing errors */ }
+                    }).catch(() => { /* ignore */ });
+                }
+            } catch (e) { /* ignore */ }
+
+            // Applique les options adaptées au contrôle locate (si instance présente)
+            try {
+                if (locCtrl && locCtrl.lc && locCtrl.lc.options) {
+                    locCtrl.lc.options.locateOptions = locateOptions;
+                } else if (locCtrl && locCtrl.options) {
+                    locCtrl.options.locateOptions = locateOptions;
+                }
+            } catch (e) { /* ignore */ }
+
+            // If permission already granted, try a fast geolocation call (uses cache) to
+            // quickly obtain a position and trigger the same handlers as the plugin.
+            // This avoids waiting for a slow high-accuracy GPS warmup.
+            let started = false;
+            try {
+                if (window._cf_locationPermission === 'granted' && navigator.geolocation && navigator.geolocation.getCurrentPosition) {
+                    try {
+                        navigator.geolocation.getCurrentPosition(function (pos) {
+                            try {
+                                const latlng = L.latLng(pos.coords.latitude, pos.coords.longitude);
+                                const ev = { latlng: latlng, accuracy: pos.coords.accuracy, coords: pos.coords, timestamp: pos.timestamp };
+                                // Fire the same event the plugin/listeners expect
+                                try { map.fire('locationfound', ev); } catch (e) { /* ignore */ }
+                            } catch (e) { /* ignore event construction */ }
+                        }, function (err) {
+                            // If this quick call fails (timeout), fallback to plugin start below
+                        }, { enableHighAccuracy: false, maximumAge: 60000, timeout: 2000 });
+                        // mark that we'll also start the plugin (non-blocking)
+                        started = true;
+                    } catch (e) { /* ignore getCurrentPosition errors */ }
+                }
+            } catch (e) { /* ignore */ }
+
+            // Démarre la localisation via l'abstraction fournie par setupLocationControl
+            if (locCtrl && typeof locCtrl.startLocate === 'function') locCtrl.startLocate();
+        } catch (e) {
+            // En cas d'erreur, fallback vers le démarrage simple
+            try { if (locCtrl && typeof locCtrl.startLocate === 'function') locCtrl.startLocate(); } catch (e2) { /* ignore */ }
         }
-    } catch (e) { /* ignore */ }
+    })();
 
     // Attacher le bouton "Continuer sans position" si présent
     try {
