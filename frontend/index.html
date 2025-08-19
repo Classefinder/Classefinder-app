@@ -3,7 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <title>Classefinder</title>
-    <link rel="icon" href="/images/favicon.ico">
+  <!-- Favicon: keep .ico for broad support, add explicit type and fallbacks for mobile/ios -->
+  <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+  <!-- Relative fallback (useful when app is served from a subpath) -->
+  <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+  <!-- PNG fallback (some mobile browsers prefer PNG) -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/logo.png">
+  <!-- SVG icon for browsers that support it -->
+  <link rel="icon" type="image/svg+xml" href="/images/logo.svg">
+  <!-- Apple / iOS touch icon (shown when adding to home screen) -->
+  <link rel="apple-touch-icon" href="/images/logo.png">
+  <!-- Optional: theme color for supported browsers -->
+  <meta name="theme-color" content="#ffffff">
+  <!-- Web app manifest and mobile/home-screen hints -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
