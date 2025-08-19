@@ -370,7 +370,11 @@ async function setupConfigSelector() {
     console.timeEnd('setupConfigSelector');
     console.log('[CONFIG] setupConfigSelector end');
     // ensure the search input is reset when setup completes
-    if (searchInput) searchInput.value = '';
+    try {
+        // Try common selectors for the search input used by the app. If none found, do nothing.
+        const searchEl = document.querySelector('input[type="search"], input.search-input, #search-input');
+        if (searchEl) searchEl.value = '';
+    } catch (e) { /* ignore */ }
 }
 
 setupConfigSelector();
