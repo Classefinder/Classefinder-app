@@ -18,13 +18,18 @@ function createArrowMarker(latlng, direction, map, batimentLayers) {
     const icon = L.icon({ iconUrl, iconSize: [20, 20], iconAnchor: [10, 10], popupAnchor: [0, -10] });
     const marker = L.marker(latlng, { icon, interactive: true, zIndexOffset: 1000, riseOnHover: true });
     marker.on('click', () => {
-        // switch base layer to the layer above or below if exists
+        // switch base layer to the layer above or below using the same flow as the layer control
         try {
-            const currentIdx = batimentLayers.findIndex(l => map.hasLayer(l));
-            if (currentIdx === -1) return;
+            let currentIdx = batimentLayers.findIndex(l => map.hasLayer(l));
+            if (currentIdx === -1) currentIdx = 0;
             const targetIdx = direction === 'up' ? currentIdx + 1 : currentIdx - 1;
             if (targetIdx >= 0 && targetIdx < batimentLayers.length) {
+                // remove all batiment layers (same as UI flow)
+                batimentLayers.forEach(l => { try { if (map.hasLayer(l)) map.removeLayer(l); } catch (e) { } });
+                // add the target layer
                 map.addLayer(batimentLayers[targetIdx]);
+                // fire baselayerchange so existing handlers (route animation cancellation, display updates) run
+                try { map.fire('baselayerchange', { layer: batimentLayers[targetIdx] }); } catch (e) { }
             }
         } catch (e) { console.error('arrow click error', e); }
     });
