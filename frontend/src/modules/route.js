@@ -5,6 +5,28 @@ import { getRouteColorByIndex } from './colors.js';
 window.allRouteSegments = window.allRouteSegments || [];
 const ANT_PATH_WEIGHT = 5;
 
+// arrows per etage
+window.routeArrowsByEtage = window.routeArrowsByEtage || [];
+
+function createArrowMarker(latlng, direction, map, batimentLayers) {
+    // direction: 'up' or 'down'
+    const iconUrl = direction === 'up' ? '/images/arrow-up.svg' : '/images/arrow-down.svg';
+    const icon = L.icon({ iconUrl, iconSize: [20, 20], iconAnchor: [10, 10] });
+    const marker = L.marker(latlng, { icon, interactive: true });
+    marker.on('click', () => {
+        // switch base layer to the layer above or below if exists
+        try {
+            const currentIdx = batimentLayers.findIndex(l => map.hasLayer(l));
+            if (currentIdx === -1) return;
+            const targetIdx = direction === 'up' ? currentIdx + 1 : currentIdx - 1;
+            if (targetIdx >= 0 && targetIdx < batimentLayers.length) {
+                map.addLayer(batimentLayers[targetIdx]);
+            }
+        } catch (e) { console.error('arrow click error', e); }
+    });
+    return marker;
+}
+
 export function getRouteAndPoints({
     map,
     start,
@@ -214,6 +236,25 @@ export function getRouteAndPoints({
                                     if (finishedCount === etageSequences.length) {
                                         window.routeAnimationState[etageIdx].finished = true;
                                     }
+                                    // after segment finished, if sequence end corresponds to a change of etage in sequences list,
+                                    // add an arrow marker at the last coord unless it's global end
+                                    try {
+                                        const seqIndex = sequences.findIndex(s => s === sequence);
+                                        if (seqIndex !== -1) {
+                                            const nextSeq = sequences[seqIndex + 1];
+                                            const isGlobalEnd = (seqIndex === sequences.length - 1);
+                                            if (!isGlobalEnd && nextSeq && nextSeq.etageIdx !== etageIdx) {
+                                                const lastCoord = interpolatedCoords[interpolatedCoords.length - 1];
+                                                const direction = nextSeq.etageIdx > etageIdx ? 'up' : 'down';
+                                                const marker = createArrowMarker(lastCoord, direction, map, batimentLayers);
+                                                // store per etage
+                                                routeArrowsByEtage[etageIdx] = routeArrowsByEtage[etageIdx] || [];
+                                                routeArrowsByEtage[etageIdx].push(marker);
+                                                // only add to map if this etage is active
+                                                if (map.hasLayer(batimentLayers[etageIdx])) marker.addTo(map);
+                                            }
+                                        }
+                                    } catch (e) { console.error('arrow creation error', e); }
                                 }
                             }
                             requestAnimationFrame(animate);
@@ -245,7 +286,7 @@ export function getRouteAndPoints({
 
                 map.on('baselayerchange', window._routeLayerChangeFunction);
 
-                updateRouteDisplay(map, routeSegmentsByEtage, window.departMarkerByEtage, window.arriveeMarkerByEtage, currentEtageActiveIdx !== -1 ? currentEtageActiveIdx : departIdx);
+                updateRouteDisplay(map, routeSegmentsByEtage, window.departMarkerByEtage, window.arriveeMarkerByEtage, window.routeArrowsByEtage, currentEtageActiveIdx !== -1 ? currentEtageActiveIdx : departIdx);
 
                 // Fit bounds conditionnel
                 const routeBounds = L.latLngBounds([start, end]);
