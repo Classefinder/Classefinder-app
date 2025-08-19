@@ -68,26 +68,36 @@ export function setupLocationControl({ map, config, perimeterCenter, perimeterRa
             }
             // If auto-centering is disabled, ensure the view remains on the configured perimeter center
             if (!allowAutoCenter && !userMoved) {
-                // Defer slightly to override any later setView from other listeners/plugins
-                setTimeout(() => {
-                    try {
-                        const zoom = (config && config.initialZoom) || map.getZoom();
-                        map.setView(center, zoom);
-                    } catch (err) { /* ignore */ }
-                }, 50);
+                // Enforce perimeter center only once per locate session to avoid repeatedly
+                // snapping the view while the locate watcher continues to emit events.
+                if (!window._cf_hasEnforcedCenter) {
+                    window._cf_hasEnforcedCenter = true;
+                    // Defer slightly to override any later setView from other listeners/plugins
+                    setTimeout(() => {
+                        try {
+                            const zoom = (config && config.initialZoom) || map.getZoom();
+                            map.setView(center, zoom);
+                        } catch (err) { /* ignore */ }
+                    }, 50);
+                }
             }
         } else {
             if (typeof onOutside === 'function') onOutside(e, window.perimeterCircle, { userMoved });
+            // If outside perimeter: when allowAutoCenter is true, behave like inside.
             if (allowAutoCenter && !userMoved && !window._cf_hasAutoCentered) {
                 try { map.setView(e.latlng, map.getZoom()); window._cf_hasAutoCentered = true; } catch (err) { /* ignore */ }
             }
+            // When auto-center is disabled, enforce perimeter center only once (same as inside case)
             if (!allowAutoCenter && !userMoved) {
-                setTimeout(() => {
-                    try {
-                        const zoom = (config && config.initialZoom) || map.getZoom();
-                        map.setView(center, zoom);
-                    } catch (err) { /* ignore */ }
-                }, 50);
+                if (!window._cf_hasEnforcedCenter) {
+                    window._cf_hasEnforcedCenter = true;
+                    setTimeout(() => {
+                        try {
+                            const zoom = (config && config.initialZoom) || map.getZoom();
+                            map.setView(center, zoom);
+                        } catch (err) { /* ignore */ }
+                    }, 50);
+                }
             }
         }
     };
@@ -125,6 +135,9 @@ export function setupLocationControl({ map, config, perimeterCenter, perimeterRa
         try {
             window._cf_userMovedMap = false;
             window._cf_hasAutoCentered = false;
+            // reset the one-time enforcement flag so we can re-apply the perimeter center
+            // once when a new locate session starts (used when allowAutoCenter === false)
+            window._cf_hasEnforcedCenter = false;
             lc.start();
         } catch (e) { /* ignore */ }
     }

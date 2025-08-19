@@ -399,7 +399,7 @@ function onLocationGranted() {
 function onLocationDenied() {
     window._cf_locationPermission = 'denied';
     // only keep base map + perimeter visible
-    setupLocationControl({ map, config, perimeterCenter: config.perimeterCenter, perimeterRadius: config.perimeterRadius });
+    setupLocationControl({ map, config, perimeterCenter: config.perimeterCenter, perimeterRadius: config.perimeterRadius, allowAutoCenter: false });
     map.setView(config.perimeterCenter, config.initialZoom || 18);
     // Masque l'overlay même si l'utilisateur refuse
     hideLocationLoadingOverlay();
@@ -421,8 +421,8 @@ document.addEventListener('DOMContentLoaded', () => {
             onLocationGranted();
         },
         onOutside: (e) => {
-            // Keep view on perimeter center even if user is outside
-            map.setView(config.perimeterCenter, config.initialZoom || 18);
+            // No-op: location module enforces perimeter center when allowAutoCenter is false.
+            // Avoid forcing map.setView here because location events fire frequently.
         },
         onDenied: () => onLocationDenied()
     });

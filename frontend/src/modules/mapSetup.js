@@ -133,7 +133,8 @@ export function setupMapFeatures({ map, ETAGES, perimeterCenter, perimeterRadius
 
         // Update perimeter circle/control (idempotent)
         try {
-            setupLocationControl({ map, config: { perimeterCenter: newCenter, perimeterRadius: newRadius }, perimeterCenter: newCenter, perimeterRadius: newRadius });
+            // Preserve non-auto-centering behavior by default to avoid sudden recentering
+            setupLocationControl({ map, config: { perimeterCenter: newCenter, perimeterRadius: newRadius }, perimeterCenter: newCenter, perimeterRadius: newRadius, allowAutoCenter: false });
         } catch (e) { /* ignore */ }
 
         // Charger immédiatement les geojson avec les nouveaux paramètres
