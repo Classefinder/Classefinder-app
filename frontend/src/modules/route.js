@@ -7,12 +7,16 @@ const ANT_PATH_WEIGHT = 5;
 
 // arrows per etage
 window.routeArrowsByEtage = window.routeArrowsByEtage || [];
+function equalsLatLng(a, b, eps = 1e-6) {
+    if (!a || !b) return false;
+    return Math.abs(a[0] - b[0]) < eps && Math.abs(a[1] - b[1]) < eps;
+}
 
 function createArrowMarker(latlng, direction, map, batimentLayers) {
     // direction: 'up' or 'down'
     const iconUrl = direction === 'up' ? '/images/arrow-up.svg' : '/images/arrow-down.svg';
-    const icon = L.icon({ iconUrl, iconSize: [20, 20], iconAnchor: [10, 10] });
-    const marker = L.marker(latlng, { icon, interactive: true });
+    const icon = L.icon({ iconUrl, iconSize: [20, 20], iconAnchor: [10, 10], popupAnchor: [0, -10] });
+    const marker = L.marker(latlng, { icon, interactive: true, zIndexOffset: 1000, riseOnHover: true });
     marker.on('click', () => {
         // switch base layer to the layer above or below if exists
         try {
@@ -62,6 +66,12 @@ export function getRouteAndPoints({
         }
     });
     window.allRouteSegments = [];
+
+    // Clear arrows globally
+    if (window.routeArrowsByEtage) {
+        window.routeArrowsByEtage.forEach(arr => { if (arr) arr.forEach(a => { if (a && map.hasLayer(a)) map.removeLayer(a); }); });
+    }
+    window.routeArrowsByEtage = [];
 
     // Réinitialisation des segments par étage
     if (routeSegmentsByEtage) {
@@ -165,6 +175,12 @@ export function getRouteAndPoints({
                         routeSegmentsByEtage[etageIdx] = [];
                     }
 
+                    // remove arrows for this etage from map and reset
+                    if (window.routeArrowsByEtage && window.routeArrowsByEtage[etageIdx]) {
+                        window.routeArrowsByEtage[etageIdx].forEach(a => { if (a && map.hasLayer(a)) map.removeLayer(a); });
+                    }
+                    window.routeArrowsByEtage[etageIdx] = [];
+
                     // Ajout d'un flag d'annulation pour l'animation de cet étage
                     window.routeAnimationState[etageIdx] = { cancelled: false, finished: false };
 
@@ -236,22 +252,40 @@ export function getRouteAndPoints({
                                     if (finishedCount === etageSequences.length) {
                                         window.routeAnimationState[etageIdx].finished = true;
                                     }
-                                    // after segment finished, if sequence end corresponds to a change of etage in sequences list,
-                                    // add an arrow marker at the last coord unless it's global end
+                                    // after segment finished, create arrows at sequence end and start when needed
                                     try {
                                         const seqIndex = sequences.findIndex(s => s === sequence);
                                         if (seqIndex !== -1) {
-                                            const nextSeq = sequences[seqIndex + 1];
                                             const isGlobalEnd = (seqIndex === sequences.length - 1);
+                                            const isGlobalStart = (seqIndex === 0);
+                                            const nextSeq = sequences[seqIndex + 1];
+                                            const prevSeq = sequences[seqIndex - 1];
+
+                                            // end arrow: if not global end and next sequence is different floor
                                             if (!isGlobalEnd && nextSeq && nextSeq.etageIdx !== etageIdx) {
                                                 const lastCoord = interpolatedCoords[interpolatedCoords.length - 1];
-                                                const direction = nextSeq.etageIdx > etageIdx ? 'up' : 'down';
-                                                const marker = createArrowMarker(lastCoord, direction, map, batimentLayers);
-                                                // store per etage
-                                                routeArrowsByEtage[etageIdx] = routeArrowsByEtage[etageIdx] || [];
-                                                routeArrowsByEtage[etageIdx].push(marker);
-                                                // only add to map if this etage is active
-                                                if (map.hasLayer(batimentLayers[etageIdx])) marker.addTo(map);
+                                                // avoid overlapping with global arrivee marker
+                                                const arriveeMarker = window.arriveeMarkerByEtage && window.arriveeMarkerByEtage[etageIdx] ? window.arriveeMarkerByEtage[etageIdx].getLatLng() : null;
+                                                if (!arriveeMarker || !equalsLatLng([lastCoord[0], lastCoord[1]], [arriveeMarker.lat, arriveeMarker.lng])) {
+                                                    const direction = nextSeq.etageIdx > etageIdx ? 'up' : 'down';
+                                                    const marker = createArrowMarker(lastCoord, direction, map, batimentLayers);
+                                                    window.routeArrowsByEtage[etageIdx] = window.routeArrowsByEtage[etageIdx] || [];
+                                                    window.routeArrowsByEtage[etageIdx].push(marker);
+                                                    if (map.hasLayer(batimentLayers[etageIdx])) marker.addTo(map);
+                                                }
+                                            }
+
+                                            // start arrow: if not global start and previous sequence is different floor
+                                            if (!isGlobalStart && prevSeq && prevSeq.etageIdx !== etageIdx) {
+                                                const firstCoord = interpolatedCoords[0];
+                                                const departMarker = window.departMarkerByEtage && window.departMarkerByEtage[etageIdx] ? window.departMarkerByEtage[etageIdx].getLatLng() : null;
+                                                if (!departMarker || !equalsLatLng([firstCoord[0], firstCoord[1]], [departMarker.lat, departMarker.lng])) {
+                                                    const direction = prevSeq.etageIdx > etageIdx ? 'up' : 'down';
+                                                    const marker = createArrowMarker(firstCoord, direction, map, batimentLayers);
+                                                    window.routeArrowsByEtage[etageIdx] = window.routeArrowsByEtage[etageIdx] || [];
+                                                    window.routeArrowsByEtage[etageIdx].push(marker);
+                                                    if (map.hasLayer(batimentLayers[etageIdx])) marker.addTo(map);
+                                                }
                                             }
                                         }
                                     } catch (e) { console.error('arrow creation error', e); }
@@ -279,6 +313,12 @@ export function getRouteAndPoints({
                             });
                             routeSegmentsByEtage[idx] = [];
                         }
+                        // remove arrows for this layer and reset
+                        if (window.routeArrowsByEtage && window.routeArrowsByEtage[idx]) {
+                            window.routeArrowsByEtage[idx].forEach(a => { if (a && map.hasLayer(a)) map.removeLayer(a); });
+                        }
+                        window.routeArrowsByEtage[idx] = [];
+
                         const seq = sequences.find(s => s.etageIdx === idx);
                         if (seq) animateEtage(idx);
                     }

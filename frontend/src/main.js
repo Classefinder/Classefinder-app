@@ -175,14 +175,14 @@ map.on('baselayerchange', function (e) {
     const idx = batimentLayers.findIndex(l => l === e.layer);
     if (idx !== -1) {
         setBackgroundForEtage(idx);
-    updateRouteDisplay(map, window.routeSegmentsByEtage, window.departMarkerByEtage, window.arriveeMarkerByEtage, window.routeArrowsByEtage, idx);
+        updateRouteDisplay(map, window.routeSegmentsByEtage, window.departMarkerByEtage, window.arriveeMarkerByEtage, window.routeArrowsByEtage, idx);
     }
 });
 map.on('layeradd', function (e) {
     const idx = batimentLayers.findIndex(l => l === e.layer);
     if (idx !== -1) {
         setBackgroundForEtage(idx);
-    updateRouteDisplay(map, window.routeSegmentsByEtage, window.departMarkerByEtage, window.arriveeMarkerByEtage, window.routeArrowsByEtage, idx);
+        updateRouteDisplay(map, window.routeSegmentsByEtage, window.departMarkerByEtage, window.arriveeMarkerByEtage, window.routeArrowsByEtage, idx);
     }
 });
 
