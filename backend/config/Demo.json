@@ -6,8 +6,8 @@
       "cheminUrl": "/geojson/chemins_etage2.geojson",
       "batimentUrl": "/geojson/salles_etage2.geojson",
       "backgroundUrl": {
-        "light": "./QTiles/etage2/{z}/{x}/{y}.png",
-        "dark": "./QTiles/etage2/{z}/{x}/{y}.png"
+        "light": "http://localhost:8080/styles/azfe/style.json/style.json",
+        "dark": "http://localhost:8080/styles/azfe/style.json"
       }
     },
     {
@@ -16,8 +16,8 @@
       "cheminUrl": "/geojson/chemins_etage0.geojson",
       "batimentUrl": "/geojson/salles_etage0.geojson",
       "backgroundUrl": {
-        "light": "./QTiles/etage0/{z}/{x}/{y}.png",
-        "dark": "./QTiles/etage0/{z}/{x}/{y}.png"
+        "light": "http://localhost:8080/styles/azfe/style.json",
+        "dark": "http://localhost:8080/styles/azfe/style.json"
       }
     },
     {
@@ -26,8 +26,8 @@
       "cheminUrl": "/geojson/chemins_etage1.geojson",
       "batimentUrl": "/geojson/salles_etage1.geojson",
       "backgroundUrl": {
-        "light": "./QTiles/etage1/{z}/{x}/{y}.png",
-        "dark": "./QTiles/etage1/{z}/{x}/{y}.png"
+        "light": "http://localhost:8080/styles/azfe/style.json",
+        "dark": "http://localhost:8080/styles/azfe/style.json"
       }
     }
   ],

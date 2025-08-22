@@ -161,11 +161,121 @@ let currentEtageIdx = 0;
 function setBackgroundForEtage(idx) {
     const etage = config.ETAGES[idx];
     if (!etage || !etage.backgroundUrl) return;
-    if (currentBaseLayer) map.removeLayer(currentBaseLayer);
+    if (currentBaseLayer) {
+        try { map.removeLayer(currentBaseLayer); } catch (e) { /* ignore */ }
+        currentBaseLayer = null;
+    }
+
     const theme = getCurrentTheme() || THEMES.LIGHT;
-    const url = etage.backgroundUrl[theme] || etage.backgroundUrl.light;
-    currentBaseLayer = L.tileLayer(url, { maxZoom: 23, attribution: '\u00a9 OpenStreetMap' });
-    currentBaseLayer.addTo(map);
+    // allow backgroundUrl to be either an object mapping themes -> url/style or a single string
+    let urlOrStyle = etage.backgroundUrl[theme] || etage.backgroundUrl.light || etage.backgroundUrl;
+
+    // Helper: detect raster tile template (contains {z}/{x}/{y})
+    const looksLikeRasterTemplate = (v) => (typeof v === 'string' && /\{ ?z ?\}|\{ ?x ?\}|\{ ?y ?\}/.test(v));
+    // Helper: detect a vector style (URL to JSON or a style object)
+    const looksLikeVectorStyle = (v) => {
+        if (!v) return false;
+        if (typeof v === 'object') return true; // assume already a style object
+        if (typeof v === 'string') {
+            const s = v.split('?')[0];
+            if (/\.json$/i.test(s)) return true;
+            if (s.toLowerCase().includes('style')) return true; // loose check for style endpoints
+        }
+        return false;
+    };
+
+    try {
+        if (looksLikeVectorStyle(urlOrStyle)) {
+            // If it's already an object, use it directly
+            if (typeof urlOrStyle === 'object') {
+                currentBaseLayer = L.maplibreGL({ style: urlOrStyle, attribution: '\u00a9 MapTiler, OpenStreetMap contributors' });
+                currentBaseLayer.addTo(map);
+            } else if (typeof urlOrStyle === 'string') {
+                // Try to fetch/validate the style JSON before handing it to maplibre.
+                const tryUrls = [
+                    urlOrStyle,
+                    urlOrStyle + '.json',
+                    urlOrStyle.replace(/\/$/, '') + '/style.json'
+                ];
+
+                const tryFetchStyle = async (candidates) => {
+                    for (let u of candidates) {
+                        try {
+                            const res = await fetch(u, { method: 'GET' });
+                            if (!res.ok) continue;
+                            const contentType = (res.headers.get('content-type') || '').toLowerCase();
+                            if (contentType.includes('application/json')) {
+                                try {
+                                    const json = await res.json();
+                                    return { style: json, url: u };
+                                } catch (e) {
+                                    // parse error, continue to next candidate
+                                    continue;
+                                }
+                            }
+                            // Some servers may return JSON with different content-type; attempt to parse anyway
+                            try {
+                                const txt = await res.text();
+                                if (txt && txt.trim().startsWith('{')) {
+                                    try {
+                                        const json = JSON.parse(txt);
+                                        return { style: json, url: u };
+                                    } catch (e) {
+                                        // not json
+                                        continue;
+                                    }
+                                }
+                            } catch (e) { /* ignore */ }
+                        } catch (e) {
+                            // fetch failed for this candidate, try next
+                            continue;
+                        }
+                    }
+                    return null;
+                };
+
+                // Async resolution: attempt to load style then add maplibre; otherwise fallback to raster
+                tryFetchStyle(tryUrls).then(result => {
+                    if (result && result.style) {
+                        try {
+                            const layer = L.maplibreGL({ style: result.style, attribution: '\u00a9 MapTiler, OpenStreetMap contributors' });
+                            if (currentBaseLayer) try { map.removeLayer(currentBaseLayer); } catch (e) { }
+                            currentBaseLayer = layer;
+                            currentBaseLayer.addTo(map);
+                        } catch (e) {
+                            console.warn('[BACKGROUND] maplibre add failed, falling back to raster', e);
+                            const layer = L.tileLayer(urlOrStyle, { maxZoom: 23, attribution: '\u00a9 OpenStreetMap' });
+                            if (currentBaseLayer) try { map.removeLayer(currentBaseLayer); } catch (e) { }
+                            currentBaseLayer = layer;
+                            currentBaseLayer.addTo(map);
+                        }
+                    } else {
+                        // fallback to raster tile layer
+                        const layer = L.tileLayer(urlOrStyle, { maxZoom: 23, attribution: '\u00a9 OpenStreetMap' });
+                        if (currentBaseLayer) try { map.removeLayer(currentBaseLayer); } catch (e) { }
+                        currentBaseLayer = layer;
+                        currentBaseLayer.addTo(map);
+                    }
+                }).catch(() => {
+                    const layer = L.tileLayer(urlOrStyle, { maxZoom: 23, attribution: '\u00a9 OpenStreetMap' });
+                    if (currentBaseLayer) try { map.removeLayer(currentBaseLayer); } catch (e) { }
+                    currentBaseLayer = layer;
+                    currentBaseLayer.addTo(map);
+                });
+            }
+        } else if (looksLikeRasterTemplate(urlOrStyle)) {
+            // Raster tile template (local tiles or remote tiles)
+            currentBaseLayer = L.tileLayer(urlOrStyle, { maxZoom: 23, attribution: '\u00a9 OpenStreetMap' });
+            currentBaseLayer.addTo(map);
+        } else if (typeof urlOrStyle === 'string') {
+            // If it's a plain string that doesn't look like raster or vector, assume raster template
+            currentBaseLayer = L.tileLayer(urlOrStyle, { maxZoom: 23, attribution: '\u00a9 OpenStreetMap' });
+            currentBaseLayer.addTo(map);
+        }
+    } catch (e) {
+        console.error('[BACKGROUND] Error while setting background layer', e);
+    }
+
     currentEtageIdx = idx;
 }
 setBackgroundForEtage(0);

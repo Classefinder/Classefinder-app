@@ -1,0 +1,39 @@
+{
+  "version": 8,
+  "name": "azfe",
+  "sources": {
+    "custom-tiles": {
+      "type": "vector",
+      "url": "mbtiles://azfe"
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#ffffff00"
+      }
+    },
+    {
+      "id": "bg-fill",
+      "type": "fill",
+      "source": "custom-tiles",
+      "source-layer": "bg",
+      "paint": {
+        "fill-color": "#ffffff",
+        "fill-opacity": 1
+      }
+    },
+    {
+      "id": "bg-outline",
+      "type": "line",
+      "source": "custom-tiles",
+      "source-layer": "bg",
+      "paint": {
+        "line-color": "#4e4e4e",
+        "line-width": 4
+      }
+    }
+  ]
+}
