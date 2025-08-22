@@ -100,6 +100,16 @@ function removeSavedConfig() {
 const map = L.map('map', { zoomDelta: 0.1, zoomSnap: 0 }).setView(config.perimeterCenter, config.initialZoom);
 console.timeLog('init:main', '[INIT] Map created and view set', { center: config.perimeterCenter, zoom: config.initialZoom });
 
+// Create dedicated panes to control z-order for base layers.
+// personalBase will sit above universalBase so user-provided backgrounds are visible.
+try {
+    if (!map.getPane('universalBase')) map.createPane('universalBase');
+    if (!map.getPane('personalBase')) map.createPane('personalBase');
+    // set z-indexes (numbers chosen to sit above default tile pane)
+    map.getPane('universalBase').style.zIndex = '200';
+    map.getPane('personalBase').style.zIndex = '650';
+} catch (e) { /* ignore if panes can't be created */ }
+
 // Theme / base
 const UNIVERSAL_BASE_URLS = {
     light: 'https://api.maptiler.com/maps/3b544fc3-420c-4a93-a594-a99b71d941bb/style.json?key=BiyHHi8FTQZ233ADqskZ',
@@ -109,7 +119,8 @@ let universalBaseLayer = null;
 function setUniversalBaseLayer(theme) {
     if (universalBaseLayer) map.removeLayer(universalBaseLayer);
     const styleUrl = theme === 'dark' ? UNIVERSAL_BASE_URLS.dark : UNIVERSAL_BASE_URLS.light;
-    universalBaseLayer = L.maplibreGL({ style: styleUrl, attribution: '\u00a9 MapTiler, OpenStreetMap contributors' });
+    // place universal base in the dedicated lower pane
+    universalBaseLayer = L.maplibreGL({ style: styleUrl, attribution: '\u00a9 MapTiler, OpenStreetMap contributors', pane: 'universalBase' });
     universalBaseLayer.addTo(map);
 }
 
@@ -238,26 +249,26 @@ function setBackgroundForEtage(idx) {
                 tryFetchStyle(tryUrls).then(result => {
                     if (result && result.style) {
                         try {
-                            const layer = L.maplibreGL({ style: result.style, attribution: '\u00a9 MapTiler, OpenStreetMap contributors' });
+                            const layer = L.maplibreGL({ style: result.style, attribution: '\u00a9 MapTiler, OpenStreetMap contributors', pane: 'personalBase' });
                             if (currentBaseLayer) try { map.removeLayer(currentBaseLayer); } catch (e) { }
                             currentBaseLayer = layer;
                             currentBaseLayer.addTo(map);
                         } catch (e) {
                             console.warn('[BACKGROUND] maplibre add failed, falling back to raster', e);
-                            const layer = L.tileLayer(urlOrStyle, { maxZoom: 23, attribution: '\u00a9 OpenStreetMap' });
+                            const layer = L.tileLayer(urlOrStyle, { maxZoom: 23, attribution: '\u00a9 OpenStreetMap', pane: 'personalBase' });
                             if (currentBaseLayer) try { map.removeLayer(currentBaseLayer); } catch (e) { }
                             currentBaseLayer = layer;
                             currentBaseLayer.addTo(map);
                         }
                     } else {
                         // fallback to raster tile layer
-                        const layer = L.tileLayer(urlOrStyle, { maxZoom: 23, attribution: '\u00a9 OpenStreetMap' });
+                        const layer = L.tileLayer(urlOrStyle, { maxZoom: 23, attribution: '\u00a9 OpenStreetMap', pane: 'personalBase' });
                         if (currentBaseLayer) try { map.removeLayer(currentBaseLayer); } catch (e) { }
                         currentBaseLayer = layer;
                         currentBaseLayer.addTo(map);
                     }
                 }).catch(() => {
-                    const layer = L.tileLayer(urlOrStyle, { maxZoom: 23, attribution: '\u00a9 OpenStreetMap' });
+                    const layer = L.tileLayer(urlOrStyle, { maxZoom: 23, attribution: '\u00a9 OpenStreetMap', pane: 'personalBase' });
                     if (currentBaseLayer) try { map.removeLayer(currentBaseLayer); } catch (e) { }
                     currentBaseLayer = layer;
                     currentBaseLayer.addTo(map);
@@ -265,7 +276,7 @@ function setBackgroundForEtage(idx) {
             }
         } else if (looksLikeRasterTemplate(urlOrStyle)) {
             // Raster tile template (local tiles or remote tiles)
-            currentBaseLayer = L.tileLayer(urlOrStyle, { maxZoom: 23, attribution: '\u00a9 OpenStreetMap' });
+            currentBaseLayer = L.tileLayer(urlOrStyle, { maxZoom: 23, attribution: '\u00a9 OpenStreetMap', pane: 'personalBase' });
             currentBaseLayer.addTo(map);
         } else if (typeof urlOrStyle === 'string') {
             // If it's a plain string that doesn't look like raster or vector, assume raster template

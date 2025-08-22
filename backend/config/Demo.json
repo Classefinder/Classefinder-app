@@ -6,7 +6,7 @@
       "cheminUrl": "/geojson/chemins_etage2.geojson",
       "batimentUrl": "/geojson/salles_etage2.geojson",
       "backgroundUrl": {
-        "light": "http://localhost:8080/styles/azfe/style.json/style.json",
+        "light": "http://localhost:8080/styles/azfe/style.json/",
         "dark": "http://localhost:8080/styles/azfe/style.json"
       }
     },
