@@ -14,9 +14,87 @@ function equalsLatLng(a, b, eps = 1e-6) {
 
 function createArrowMarker(latlng, direction, map, batimentLayers) {
     // direction: 'up' or 'down'
-    const iconUrl = direction === 'up' ? '/images/arrow-up.svg' : '/images/arrow-down.svg';
-    const icon = L.icon({ iconUrl, iconSize: [20, 20], iconAnchor: [10, 10], popupAnchor: [0, -10] });
+    // Static icon filenames (light/dark variants). We use the body 'dark' class to pick the variant.
+    const LIGHT_ICON = (dir) => `/images/arrow-${dir}.svg`;
+    const DARK_ICON = (dir) => `/images/arrow-${dir}-dark.svg`;
+
+    // Detect dark theme from common signals: body class 'dark' or 'dark-mode', or data-theme="dark"
+    const isDark = () => {
+        try {
+            const body = document.body;
+            if (!body) return false;
+            const cls = body.classList;
+            if (cls && (cls.contains('dark') || cls.contains('dark-mode') || cls.contains('theme-dark'))) return true;
+            const dt = body.getAttribute && body.getAttribute('data-theme');
+            if (dt && dt.toLowerCase() === 'dark') return true;
+            // fallback to documentElement
+            const htmlDt = document.documentElement && document.documentElement.getAttribute && document.documentElement.getAttribute('data-theme');
+            if (htmlDt && htmlDt.toLowerCase() === 'dark') return true;
+            return false;
+        } catch (e) { return false; }
+    };
+    const makeIcon = (dir) => L.icon({ iconUrl: (isDark() ? DARK_ICON(dir) : LIGHT_ICON(dir)), iconSize: [20, 20], iconAnchor: [10, 10], popupAnchor: [0, -10] });
+    const icon = makeIcon(direction);
     const marker = L.marker(latlng, { icon, interactive: true, zIndexOffset: 1000, riseOnHover: true });
+
+    // store direction so we can update icon on theme change
+    marker.__arrowDirection = direction;
+
+    // update function to swap icon when theme changes
+    const updateIcon = () => {
+        try {
+            if (marker.__removed) return;
+            const newIcon = makeIcon(marker.__arrowDirection || direction);
+            marker.setIcon(newIcon);
+        } catch (e) { /* ignore */ }
+    };
+
+    // Track markers globally so a single observer can update them on theme toggle
+    window.__arrowMarkers = window.__arrowMarkers || [];
+    window.__arrowMarkers.push(marker);
+
+    // mark removed to avoid unnecessary updates after marker is discarded
+    if (marker.on) marker.on('remove', () => { marker.__removed = true; });
+
+    // Ensure a single MutationObserver watches the body class and updates all arrow markers
+    if (!window.__arrowThemeObserverRegistered) {
+        window.__arrowThemeObserverRegistered = true;
+        const setupObserver = () => {
+            try {
+                const target = document.body;
+                if (!target) return;
+                const mo = new MutationObserver(() => {
+                    try {
+                        (window.__arrowMarkers || []).forEach(m => {
+                            try {
+                                if (m.__removed) return;
+                                const dir = m.__arrowDirection || 'up';
+                                const iconUrl = isDark() ? DARK_ICON(dir) : LIGHT_ICON(dir);
+                                m.setIcon(L.icon({ iconUrl, iconSize: [20, 20], iconAnchor: [10, 10], popupAnchor: [0, -10] }));
+                            } catch (e) { }
+                        });
+                    } catch (e) { }
+                });
+                mo.observe(target, { attributes: true, attributeFilter: ['class'] });
+                // Immediately update existing markers in case the theme was already applied
+                try {
+                    (window.__arrowMarkers || []).forEach(m => {
+                        try {
+                            if (m.__removed) return;
+                            const dir = m.__arrowDirection || 'up';
+                            const iconUrl = isDark() ? DARK_ICON(dir) : LIGHT_ICON(dir);
+                            m.setIcon(L.icon({ iconUrl, iconSize: [20, 20], iconAnchor: [10, 10], popupAnchor: [0, -10] }));
+                        } catch (e) { }
+                    });
+                } catch (e) { }
+            } catch (e) { /* ignore */ }
+        };
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupObserver);
+        } else {
+            setupObserver();
+        }
+    }
     marker.on('click', () => {
         // switch base layer to the layer above or below using the same flow as the layer control
         try {
