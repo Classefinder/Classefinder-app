@@ -6,8 +6,20 @@
     }
   },
   "styles": {
-    "azfe": {
-      "style": "azfe/style.json",
+    "Fond-Etage0": {
+      "style": "Fond-Etage0/style.json",
+      "tilejson": {
+        "type": "overlay",
+        "bounds": [
+          8.529446,
+          47.364758,
+          8.55232,
+          47.380539
+        ]
+      }
+    },
+    "Fond-Etage1": {
+      "style": "Fond-Etage1/style.json",
       "tilejson": {
         "type": "overlay",
         "bounds": [
@@ -20,8 +32,11 @@
     }
   },
   "data": {
-    "azfe": {
-      "mbtiles": "azfe.mbtiles"
+    "Fond-Etage0": {
+      "mbtiles": "mbtiles/Jean-Hamburger/Fond-Etage0.mbtiles"
+    },
+    "Fond-Etage1": {
+      "mbtiles": "mbtiles/Jean-Hamburger/Fond-Etage1.mbtiles"
     }
   }
 }

@@ -23,6 +23,7 @@ export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, ch
             .then(data => {
                 const features = [];
                 const cheminLayer = L.geoJSON(data, {
+                    pane: 'geojsonOverlay',
                     style: function () {
                         // Déclinaison bleu HSL
                         return { color: getBaseColorByIndex(idx, ETAGES.length, BASE_HUE, BASE_SAT, BASE_LIGHT), weight: 3, fillColor: getBaseColorByIndex(idx, ETAGES.length, BASE_HUE, BASE_SAT, BASE_LIGHT) };
@@ -58,6 +59,7 @@ export function loadGeojsonLayers({ ETAGES, batimentLayers, batimentFeatures, ch
             .then(data => {
                 const features = [];
                 const batLayer = L.geoJSON(data, {
+                    pane: 'geojsonOverlay',
                     style: function () {
                         // Déclinaison bleu HSL
                         return { color: getBaseColorByIndex(idx, ETAGES.length, BASE_HUE, BASE_SAT, BASE_LIGHT), weight: 2, fillColor: getBaseColorByIndex(idx, ETAGES.length, BASE_HUE, BASE_SAT, BASE_LIGHT) };

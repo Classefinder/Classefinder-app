@@ -3,21 +3,21 @@
     {
       "nom": "Etage0",
       "code": "0",
-      "cheminUrl": "/geojson/Jean-Hamburger/Chemin - Etage0.geojson",
-      "batimentUrl": "/geojson/Jean-Hamburger/Salle - Etage0.geojson",
+      "cheminUrl": "/geojson/Jean-Hamburger/Chemin-Etage0.geojson",
+      "batimentUrl": "/geojson/Jean-Hamburger/Salle-Etage0.geojson",
       "backgroundUrl": {
-        "light": "/tileserver-gl/Jean-Hamburger/Fond - Etage0.mbtiles",
-        "dark": ""
+        "light": "http://localhost:8080/styles/Fond-Etage0/style.json/",
+        "dark": "http://localhost:8080/styles/Fond-Etage0/style.json"
       }
     },
     {
       "nom": "Etage1",
       "code": "1",
-      "cheminUrl": "/geojson/Jean-Hamburger/Chemin - Etage1.geojson",
-      "batimentUrl": "/geojson/Jean-Hamburger/Salle - Etage1.geojson",
+      "cheminUrl": "/geojson/Jean-Hamburger/Chemin-Etage1.geojson",
+      "batimentUrl": "/geojson/Jean-Hamburger/Salle-Etage1.geojson",
       "backgroundUrl": {
-        "light": "/tileserver-gl/Jean-Hamburger/Fond - Etage1.mbtiles",
-        "dark": ""
+        "light": "http://localhost:8080/styles/Fond-Etage1/style.json/",
+        "dark": "http://localhost:8080/styles/Fond-Etage1/style.json"
       }
     }
   ],
@@ -25,7 +25,7 @@
     48.84528852631579,
     2.3135336315789474
   ],
-  "perimeterRadius": 1000000,
+  "perimeterRadius": 10000000000000000,
   "BASE_HUE": 288,
   "BASE_SAT": 100,
   "BASE_LIGHT": 50,
@@ -34,5 +34,5 @@
     "escalier"
   ],
   "osrmUrl": "https://classefinder.duckdns.org/osrm/route/v1/driving",
-  "initialZoom": 14
+  "initialZoom": 18
 }

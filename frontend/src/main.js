@@ -105,9 +105,13 @@ console.timeLog('init:main', '[INIT] Map created and view set', { center: config
 try {
     if (!map.getPane('universalBase')) map.createPane('universalBase');
     if (!map.getPane('personalBase')) map.createPane('personalBase');
-    // set z-indexes (numbers chosen to sit above default tile pane)
-    map.getPane('universalBase').style.zIndex = '200';
-    map.getPane('personalBase').style.zIndex = '650';
+    // pane for geojson/vector overlays; this will sit above personalBase so geojson stays visible
+    if (!map.getPane('geojsonOverlay')) map.createPane('geojsonOverlay');
+    // set z-indexes (numbers chosen to ensure clear ordering)
+    // universalBase (lowest), personalBase (user background), geojsonOverlay (above personalBase)
+    map.getPane('universalBase').style.zIndex = '100';
+    map.getPane('personalBase').style.zIndex = '300';
+    map.getPane('geojsonOverlay').style.zIndex = '301';
 } catch (e) { /* ignore if panes can't be created */ }
 
 // Theme / base
@@ -199,7 +203,7 @@ function setBackgroundForEtage(idx) {
         if (looksLikeVectorStyle(urlOrStyle)) {
             // If it's already an object, use it directly
             if (typeof urlOrStyle === 'object') {
-                currentBaseLayer = L.maplibreGL({ style: urlOrStyle, attribution: '\u00a9 MapTiler, OpenStreetMap contributors' });
+                currentBaseLayer = L.maplibreGL({ style: urlOrStyle, attribution: '\u00a9 MapTiler, OpenStreetMap contributors', pane: 'personalBase' });
                 currentBaseLayer.addTo(map);
             } else if (typeof urlOrStyle === 'string') {
                 // Try to fetch/validate the style JSON before handing it to maplibre.
@@ -280,7 +284,7 @@ function setBackgroundForEtage(idx) {
             currentBaseLayer.addTo(map);
         } else if (typeof urlOrStyle === 'string') {
             // If it's a plain string that doesn't look like raster or vector, assume raster template
-            currentBaseLayer = L.tileLayer(urlOrStyle, { maxZoom: 23, attribution: '\u00a9 OpenStreetMap' });
+            currentBaseLayer = L.tileLayer(urlOrStyle, { maxZoom: 23, attribution: '\u00a9 OpenStreetMap', pane: 'personalBase' });
             currentBaseLayer.addTo(map);
         }
     } catch (e) {
